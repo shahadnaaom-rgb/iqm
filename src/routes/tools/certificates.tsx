@@ -33,7 +33,7 @@ export const Route = createFileRoute("/tools/certificates")({
       { property: "og:description", content: "محرر شهادات يعمل داخل متصفحك مع دعم كامل للعربية." },
     ],
   }),
-  component: SingleCertificate;
+  component: SingleCertificate,
 });
 
 function SingleCertificate() {
