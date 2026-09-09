@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UpdatesRouteImport } from './routes/updates'
+import { Route as ToolsCertificatesRouteImport } from './routes/tools/certificates'
+import { Route as ToolsFontsRouteImport } from './routes/tools/fonts'
+import { Route as ToolsImageCompressorRouteImport } from './routes/tools/image-compressor'
+import { Route as ToolsPdfRouteImport } from './routes/tools/pdf'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsCertificatesRoute = ToolsCertificatesRouteImport.update({
+  id: '/tools/certificates',
+  path: '/tools/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsFontsRoute = ToolsFontsRouteImport.update({
+  id: '/tools/fonts',
+  path: '/tools/fonts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsImageCompressorRoute = ToolsImageCompressorRouteImport.update({
+  id: '/tools/image-compressor',
+  path: '/tools/image-compressor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPdfRoute = ToolsPdfRouteImport.update({
+  id: '/tools/pdf',
+  path: '/tools/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/updates': typeof UpdatesRoute
+  '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/fonts': typeof ToolsFontsRoute
+  '/tools/image-compressor': typeof ToolsImageCompressorRoute
+  '/tools/pdf': typeof ToolsPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/updates': typeof UpdatesRoute
+  '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/fonts': typeof ToolsFontsRoute
+  '/tools/image-compressor': typeof ToolsImageCompressorRoute
+  '/tools/pdf': typeof ToolsPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/updates': typeof UpdatesRoute
+  '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/fonts': typeof ToolsFontsRoute
+  '/tools/image-compressor': typeof ToolsImageCompressorRoute
+  '/tools/pdf': typeof ToolsPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/updates'
+    | '/tools/certificates'
+    | '/tools/fonts'
+    | '/tools/image-compressor'
+    | '/tools/pdf'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/updates'
+    | '/tools/certificates'
+    | '/tools/fonts'
+    | '/tools/image-compressor'
+    | '/tools/pdf'
+  id:
+    | '__root__'
+    | '/'
+    | '/updates'
+    | '/tools/certificates'
+    | '/tools/fonts'
+    | '/tools/image-compressor'
+    | '/tools/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  UpdatesRoute: typeof UpdatesRoute
+  ToolsCertificatesRoute: typeof ToolsCertificatesRoute
+  ToolsFontsRoute: typeof ToolsFontsRoute
+  ToolsImageCompressorRoute: typeof ToolsImageCompressorRoute
+  ToolsPdfRoute: typeof ToolsPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +117,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/certificates': {
+      id: '/tools/certificates'
+      path: '/tools/certificates'
+      fullPath: '/tools/certificates'
+      preLoaderRoute: typeof ToolsCertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/fonts': {
+      id: '/tools/fonts'
+      path: '/tools/fonts'
+      fullPath: '/tools/fonts'
+      preLoaderRoute: typeof ToolsFontsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/image-compressor': {
+      id: '/tools/image-compressor'
+      path: '/tools/image-compressor'
+      fullPath: '/tools/image-compressor'
+      preLoaderRoute: typeof ToolsImageCompressorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/pdf': {
+      id: '/tools/pdf'
+      path: '/tools/pdf'
+      fullPath: '/tools/pdf'
+      preLoaderRoute: typeof ToolsPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  UpdatesRoute: UpdatesRoute,
+  ToolsCertificatesRoute: ToolsCertificatesRoute,
+  ToolsFontsRoute: ToolsFontsRoute,
+  ToolsImageCompressorRoute: ToolsImageCompressorRoute,
+  ToolsPdfRoute: ToolsPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
