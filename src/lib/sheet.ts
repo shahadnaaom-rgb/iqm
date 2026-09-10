@@ -9,7 +9,7 @@ export type SheetData = {
 export async function readSheet(file: File): Promise<SheetData> {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const sheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
   if (!sheet) return { columns: [], rows: [] };
 
   const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "", raw: false });
@@ -23,6 +23,6 @@ export async function readSheet(file: File): Promise<SheetData> {
     })
     .filter((row) => Object.values(row).some((v) => v !== ""));
 
-  const columns = rows.length ? Object.keys(rows[0]) : [];
+  const columns = rows[0] ? Object.keys(rows[0]) : [];
   return { columns, rows };
 }

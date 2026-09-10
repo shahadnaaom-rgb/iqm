@@ -6,11 +6,11 @@ import { cn } from "../../lib/utils";
 type Props = {
   image: HTMLImageElement;
   fields: Field[];
-  row?: Record<string, string>;
-  selectedId?: string | null;
-  onSelect?: (id: string) => void;
-  onMove?: (id: string, x: number, y: number) => void;
-  className?: string;
+  row?: Record<string, string> | undefined;
+  selectedId?: string | null | undefined;
+  onSelect?: ((id: string) => void) | undefined;
+  onMove?: ((id: string, x: number, y: number) => void) | undefined;
+  className?: string | undefined;
 };
 
 /** معاينة مباشرة: النص يُرسم على Canvas بنفس طريقة التصدير، والحقول قابلة للتحريك بالماوس أو اللمس. */

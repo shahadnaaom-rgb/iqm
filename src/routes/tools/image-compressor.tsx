@@ -103,7 +103,7 @@ function ImageCompressor() {
     if (!list.length) return;
     setProgress({ done: 0, total: list.length });
     for (let i = 0; i < list.length; i++) {
-      const item = list[i];
+      const item = list[i]!;
       try {
         const res = await compressImage(item.file, { quality, format, maxWidth, targetBytes });
         const url = URL.createObjectURL(res.blob);
@@ -177,7 +177,7 @@ function ImageCompressor() {
             min={10}
             max={100}
             step={1}
-            onValueChange={([v]) => setQuality(v / 100)}
+            onValueChange={([v]) => setQuality((v ?? 80) / 100)}
           />
           <span className="text-xs text-muted-foreground">مخصصة: {Math.round(quality * 100)}%</span>
         </div>
