@@ -41,7 +41,7 @@ export const Route = createFileRoute("/tools/excel-certificates")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: BulkCertificates;
+  component: BulkCertificates,
 });
 
 type Mode = "appreciation" | "grades";
