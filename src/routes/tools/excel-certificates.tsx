@@ -109,7 +109,7 @@ function BulkCertificates() {
 
   const onTemplate = async (files: File[]) => {
     try {
-      setImage(await loadImageFromFile(files[0]));
+      setImage(await loadImageFromFile(files[0]!));
       toast.success("تم تحميل القالب على جهازك");
     } catch {
       toast.error("تعذر قراءة صورة القالب");
@@ -118,12 +118,16 @@ function BulkCertificates() {
 
   const onSheet = async (files: File[]) => {
     try {
-      const data = await readSheet(files[0]);
-      if (!data.rows.length) return toast.error("الملف فارغ أو غير مقروء");
+      const data = await readSheet(files[0]!);
+      if (!data.rows.length) {
+        toast.error("الملف فارغ أو غير مقروء");
+        return;
+      }
       setSheetRows(data.rows);
       setSheetColumns(data.columns);
+      const first = data.columns[0] ?? NAME;
       setFields((prev) =>
-        prev.map((f) => (data.columns.includes(f.key) ? f : { ...f, key: data.columns[0] })),
+        prev.map((f) => (data.columns.includes(f.key) ? f : { ...f, key: first })),
       );
       toast.success(`تم قراءة ${data.rows.length} صفاً على جهازك`);
     } catch {
