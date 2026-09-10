@@ -143,7 +143,7 @@ function BulkCertificates() {
     const nameKey = fields[0]?.key ?? NAME;
 
     for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
+      const row = rows[i]!;
       drawCertificate(canvas, image, fields, row);
       const blob = await canvasToBlob(canvas, "image/png");
       const file = `${String(i + 1).padStart(3, "0")}-${safeFileName(row[nameKey] || `طالب-${i + 1}`)}.png`;
