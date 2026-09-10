@@ -10,7 +10,7 @@ const NAV = [
   { to: "/", label: "الرئيسية" },
   { to: "/tools/image-compressor", label: "ضغط الصور" },
   { to: "/tools/certificates", label: "الشهادات" },
-  { to: "/tools/excel-certificates", label: "شهادات Excel" },
+  { to: "/tools/excel-certificates", label: "شهادات جماعية" },
   { to: "/tools/fonts", label: "الخطوط" },
   { to: "/updates", label: "التحديثات" },
   { to: "/settings", label: "الإعدادات" },
