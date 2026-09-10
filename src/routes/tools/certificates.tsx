@@ -49,7 +49,7 @@ function SingleCertificate() {
 
   const onTemplate = async (files: File[]) => {
     try {
-      const img = await loadImageFromFile(files[0]);
+      const img = await loadImageFromFile(files[0]!);
       setImage(img);
       toast.success("تم تحميل القالب على جهازك");
     } catch {

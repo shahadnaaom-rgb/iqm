@@ -196,7 +196,7 @@ function SliderRow({
         min={min}
         max={max}
         step={1}
-        onValueChange={([v]) => onChange(v)}
+        onValueChange={([v]) => onChange(v ?? value)}
         dir="rtl"
       />
     </div>

@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as ToolsCertificatesRouteImport } from './routes/tools/certificates'
+import { Route as ToolsExcelCertificatesRouteImport } from './routes/tools/excel-certificates'
 import { Route as ToolsFontsRouteImport } from './routes/tools/fonts'
 import { Route as ToolsImageCompressorRouteImport } from './routes/tools/image-compressor'
 import { Route as ToolsPdfRouteImport } from './routes/tools/pdf'
@@ -19,6 +21,11 @@ import { Route as ToolsPdfRouteImport } from './routes/tools/pdf'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UpdatesRoute = UpdatesRouteImport.update({
@@ -29,6 +36,11 @@ const UpdatesRoute = UpdatesRouteImport.update({
 const ToolsCertificatesRoute = ToolsCertificatesRouteImport.update({
   id: '/tools/certificates',
   path: '/tools/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsExcelCertificatesRoute = ToolsExcelCertificatesRouteImport.update({
+  id: '/tools/excel-certificates',
+  path: '/tools/excel-certificates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsFontsRoute = ToolsFontsRouteImport.update({
@@ -49,16 +61,20 @@ const ToolsPdfRoute = ToolsPdfRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/updates': typeof UpdatesRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/updates': typeof UpdatesRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
@@ -66,8 +82,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/updates': typeof UpdatesRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
@@ -76,24 +94,30 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/updates'
     | '/tools/certificates'
+    | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings'
     | '/updates'
     | '/tools/certificates'
+    | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
   id:
     | '__root__'
     | '/'
+    | '/settings'
     | '/updates'
     | '/tools/certificates'
+    | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
@@ -101,8 +125,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   UpdatesRoute: typeof UpdatesRoute
   ToolsCertificatesRoute: typeof ToolsCertificatesRoute
+  ToolsExcelCertificatesRoute: typeof ToolsExcelCertificatesRoute
   ToolsFontsRoute: typeof ToolsFontsRoute
   ToolsImageCompressorRoute: typeof ToolsImageCompressorRoute
   ToolsPdfRoute: typeof ToolsPdfRoute
@@ -117,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/updates': {
       id: '/updates'
       path: '/updates'
@@ -129,6 +162,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/certificates'
       fullPath: '/tools/certificates'
       preLoaderRoute: typeof ToolsCertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/excel-certificates': {
+      id: '/tools/excel-certificates'
+      path: '/tools/excel-certificates'
+      fullPath: '/tools/excel-certificates'
+      preLoaderRoute: typeof ToolsExcelCertificatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/fonts': {
@@ -157,8 +197,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   UpdatesRoute: UpdatesRoute,
   ToolsCertificatesRoute: ToolsCertificatesRoute,
+  ToolsExcelCertificatesRoute: ToolsExcelCertificatesRoute,
   ToolsFontsRoute: ToolsFontsRoute,
   ToolsImageCompressorRoute: ToolsImageCompressorRoute,
   ToolsPdfRoute: ToolsPdfRoute,

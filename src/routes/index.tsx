@@ -50,8 +50,8 @@ const TOOLS = [
   {
     to: "/tools/excel-certificates",
     icon: FileSpreadsheet,
-    title: "شهادات من Excel",
-    desc: "أنشئ مئات الشهادات من ملف Excel.",
+    title: "شهادات جماعية",
+    desc: "اكتب الأسماء أو ارفع Excel: تقديرية أو درجات.",
   },
   {
     to: "/tools/certificates",
