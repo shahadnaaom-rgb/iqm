@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { GraduationCap, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { AdSlot } from "../AdSlot";
 import { Button } from "../ui/button";
 import { useTheme } from "../../lib/theme";
 import { cn } from "../../lib/utils";
