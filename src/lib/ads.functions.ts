@@ -108,12 +108,17 @@ export const updateAd = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     assertCode(data.code);
-    const patch: Record<string, unknown> = {};
-    if (data.linkUrl !== undefined) patch["link_url"] = data.linkUrl?.trim() || null;
+    const patch: {
+      link_url?: string | null;
+      placement?: string;
+      sort_order?: number;
+      is_active?: boolean;
+    } = {};
+    if (data.linkUrl !== undefined) patch.link_url = data.linkUrl?.trim() || null;
     if (data.placement !== undefined)
-      patch["placement"] = data.placement === "tools" ? "tools" : "home";
-    if (data.sortOrder !== undefined) patch["sort_order"] = data.sortOrder;
-    if (data.isActive !== undefined) patch["is_active"] = data.isActive;
+      patch.placement = data.placement === "tools" ? "tools" : "home";
+    if (data.sortOrder !== undefined) patch.sort_order = data.sortOrder;
+    if (data.isActive !== undefined) patch.is_active = data.isActive;
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("ads").update(patch).eq("id", data.id);
