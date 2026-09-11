@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { AdSlot } from "../components/AdSlot";
 import { PrivacyNote } from "../components/PrivacyNote";
 
 export const Route = createFileRoute("/")({
