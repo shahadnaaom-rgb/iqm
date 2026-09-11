@@ -17,6 +17,7 @@ import { Route as ToolsExcelCertificatesRouteImport } from './routes/tools/excel
 import { Route as ToolsFontsRouteImport } from './routes/tools/fonts'
 import { Route as ToolsImageCompressorRouteImport } from './routes/tools/image-compressor'
 import { Route as ToolsPdfRouteImport } from './routes/tools/pdf'
+import { Route as ApiPublicAdImageNameRouteImport } from './routes/api/public/ad-image.$name'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const ToolsPdfRoute = ToolsPdfRouteImport.update({
   path: '/tools/pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAdImageNameRoute = ApiPublicAdImageNameRouteImport.update({
+  id: '/api/public/ad-image/$name',
+  path: '/api/public/ad-image/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
+  '/api/public/ad-image/$name': typeof ApiPublicAdImageNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
+  '/api/public/ad-image/$name': typeof ApiPublicAdImageNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
+  '/api/public/ad-image/$name': typeof ApiPublicAdImageNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
+    | '/api/public/ad-image/$name'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
+    | '/api/public/ad-image/$name'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
+    | '/api/public/ad-image/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   ToolsFontsRoute: typeof ToolsFontsRoute
   ToolsImageCompressorRoute: typeof ToolsImageCompressorRoute
   ToolsPdfRoute: typeof ToolsPdfRoute
+  ApiPublicAdImageNameRoute: typeof ApiPublicAdImageNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ad-image/$name': {
+      id: '/api/public/ad-image/$name'
+      path: '/api/public/ad-image/$name'
+      fullPath: '/api/public/ad-image/$name'
+      preLoaderRoute: typeof ApiPublicAdImageNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsFontsRoute: ToolsFontsRoute,
   ToolsImageCompressorRoute: ToolsImageCompressorRoute,
   ToolsPdfRoute: ToolsPdfRoute,
+  ApiPublicAdImageNameRoute: ApiPublicAdImageNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
