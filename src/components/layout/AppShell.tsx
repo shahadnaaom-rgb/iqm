@@ -88,7 +88,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        {path.startsWith("/tools") && <AdSlot placement="tools" className="pt-4" />}
+        {children}
+      </main>
 
       <footer className="border-t border-border bg-card">
         <div className="mx-auto grid w-full max-w-6xl gap-3 px-4 py-8 text-sm text-muted-foreground">
