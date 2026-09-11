@@ -98,6 +98,8 @@ function Home() {
         </div>
       </section>
 
+      <AdSlot placement="home" className="pt-8" />
+
       <section className="mx-auto w-full max-w-6xl px-4 py-12">
         <h2 className="mb-6 text-xl font-bold sm:text-2xl">الأدوات</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
