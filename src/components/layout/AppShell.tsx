@@ -13,7 +13,7 @@ const NAV = [
   { to: "/tools/certificates", label: "الشهادات" },
   { to: "/tools/excel-certificates", label: "شهادات جماعية" },
   { to: "/tools/fonts", label: "الخطوط" },
-  { to: "/updates", label: "التحديثات" },
+  { to: "/articles", label: "المقالات" },
   { to: "/settings", label: "الإعدادات" },
 ] as const;
 
@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <ShieldCheck className="size-4 text-primary" />
             ملفاتك لا يتم رفعها إلى أي خادم. تتم معالجة الملفات مباشرة على جهازك.
           </p>
-          <p>منصة الأستاذ — أدوات مجانية للمدرسين، تعمل بدون حساب وبدون إنترنت بعد أول تحميل.</p>
+          <p>منصة الأستاذ — أدوات مجانية للمدرسين، تعمل بدون حساب.</p>
         </div>
       </footer>
     </div>

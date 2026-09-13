@@ -5,11 +5,10 @@ import {
   FileText,
   GraduationCap,
   ImageDown,
-  Megaphone,
+  Newspaper,
   PenTool,
   Settings,
   ShieldCheck,
-  WifiOff,
   Zap,
 } from "lucide-react";
 
@@ -62,14 +61,14 @@ const TOOLS = [
   },
   { to: "/tools/fonts", icon: PenTool, title: "الخطوط", desc: "أضف خطوطك الخاصة." },
   { to: "/tools/pdf", icon: FileText, title: "أدوات PDF", desc: "قريباً." },
-  { to: "/updates", icon: Megaphone, title: "التحديثات", desc: "آخر إضافات المنصة." },
+  { to: "/articles", icon: Newspaper, title: "المقالات", desc: "مقالات وإرشادات للمدرسين." },
   { to: "/settings", icon: Settings, title: "الإعدادات", desc: "الوضع الليلي وتنظيف البيانات." },
 ] as const;
 
 const FEATURES = [
   { icon: ShieldCheck, title: "خصوصية كاملة", desc: "الملفات لا تخرج من جهازك أبداً." },
   { icon: Zap, title: "سرعة فورية", desc: "لا انتظار للرفع أو التحميل من خادم." },
-  { icon: WifiOff, title: "يعمل بدون إنترنت", desc: "ثبّت المنصة كتطبيق واستخدمها offline." },
+  { icon: GraduationCap, title: "صُنع للمدرسين", desc: "أدوات مصممة لاحتياجاتك اليومية في المدرسة." },
 ];
 
 function Home() {
