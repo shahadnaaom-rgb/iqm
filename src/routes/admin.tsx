@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ImagePlus, Lock, Pencil, Trash2, Upload } from "lucide-react";
+import { ImagePlus, Link2, Lock, Pencil, Trash2, Upload } from "lucide-react";
 
 import { Button } from "../components/ui/button";
 import { adImageSrc } from "../components/AdSlot";
@@ -387,6 +387,23 @@ function ArticlesPanel({ code }: { code: string }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleInsertLink() {
+    const url = window.prompt("ألصق رابط الموقع (مثال: https://example.com)");
+    if (!url) return;
+    const trimmed = url.trim();
+    if (!/^https?:\/\//i.test(trimmed) && !trimmed.startsWith("/")) {
+      toast.error("الرابط يجب أن يبدأ بـ https:// أو http://");
+      return;
+    }
+    const label = window.prompt("نص الرابط الذي سيظهر للقارئ", trimmed) || trimmed;
+    const snippet = `[${label}](${trimmed})`;
+    const el = contentRef.current;
+    const start = el?.selectionStart ?? content.length;
+    const end = el?.selectionEnd ?? start;
+    setContent((prev) => prev.slice(0, start) + snippet + prev.slice(end));
+    toast.success("أُدرج الرابط داخل المقال");
   }
 
   async function handleSave() {
