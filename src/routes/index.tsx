@@ -5,11 +5,10 @@ import {
   FileText,
   GraduationCap,
   ImageDown,
-  Megaphone,
+  Newspaper,
   PenTool,
   Settings,
   ShieldCheck,
-  WifiOff,
   Zap,
 } from "lucide-react";
 
@@ -69,7 +68,7 @@ const TOOLS = [
 const FEATURES = [
   { icon: ShieldCheck, title: "خصوصية كاملة", desc: "الملفات لا تخرج من جهازك أبداً." },
   { icon: Zap, title: "سرعة فورية", desc: "لا انتظار للرفع أو التحميل من خادم." },
-  { icon: WifiOff, title: "يعمل بدون إنترنت", desc: "ثبّت المنصة كتطبيق واستخدمها offline." },
+  { icon: GraduationCap, title: "صُنع للمدرسين", desc: "أدوات مصممة لاحتياجاتك اليومية في المدرسة." },
 ];
 
 function Home() {
