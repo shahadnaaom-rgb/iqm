@@ -484,6 +484,10 @@ function ArticlesPanel({ code }: { code: string }) {
             <ImagePlus className="size-4" />
             إدراج صورة داخل المقال
           </Button>
+          <Button variant="outline" size="sm" onClick={handleInsertLink} disabled={busy}>
+            <Link2 className="size-4" />
+            إدراج رابط
+          </Button>
           <input
             ref={inlineImageRef}
             type="file"
