@@ -62,7 +62,7 @@ const TOOLS = [
   },
   { to: "/tools/fonts", icon: PenTool, title: "الخطوط", desc: "أضف خطوطك الخاصة." },
   { to: "/tools/pdf", icon: FileText, title: "أدوات PDF", desc: "قريباً." },
-  { to: "/updates", icon: Megaphone, title: "التحديثات", desc: "آخر إضافات المنصة." },
+  { to: "/articles", icon: Newspaper, title: "المقالات", desc: "مقالات وإرشادات للمدرسين." },
   { to: "/settings", icon: Settings, title: "الإعدادات", desc: "الوضع الليلي وتنظيف البيانات." },
 ] as const;
 

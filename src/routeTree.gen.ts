@@ -12,7 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as UpdatesRouteImport } from './routes/updates'
+import { Route as ArticlesIndexRouteImport } from './routes/articles/index'
+import { Route as ArticlesSlugRouteImport } from './routes/articles/$slug'
 import { Route as ToolsCertificatesRouteImport } from './routes/tools/certificates'
 import { Route as ToolsExcelCertificatesRouteImport } from './routes/tools/excel-certificates'
 import { Route as ToolsFontsRouteImport } from './routes/tools/fonts'
@@ -36,9 +37,14 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UpdatesRoute = UpdatesRouteImport.update({
-  id: '/updates',
-  path: '/updates',
+const ArticlesIndexRoute = ArticlesIndexRouteImport.update({
+  id: '/articles/',
+  path: '/articles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArticlesSlugRoute = ArticlesSlugRouteImport.update({
+  id: '/articles/$slug',
+  path: '/articles/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsCertificatesRoute = ToolsCertificatesRouteImport.update({
@@ -82,12 +88,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/settings': typeof SettingsRoute
-  '/updates': typeof UpdatesRoute
+  '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
+  '/articles/': typeof ArticlesIndexRoute
   '/api/public/ad-image/$name': typeof ApiPublicAdImageNameRoute
   '/api/public/article-image/$name': typeof ApiPublicArticleImageNameRoute
 }
@@ -95,12 +102,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/settings': typeof SettingsRoute
-  '/updates': typeof UpdatesRoute
+  '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
+  '/articles': typeof ArticlesIndexRoute
   '/api/public/ad-image/$name': typeof ApiPublicAdImageNameRoute
   '/api/public/article-image/$name': typeof ApiPublicArticleImageNameRoute
 }
@@ -109,12 +117,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/settings': typeof SettingsRoute
-  '/updates': typeof UpdatesRoute
+  '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
   '/tools/pdf': typeof ToolsPdfRoute
+  '/articles/': typeof ArticlesIndexRoute
   '/api/public/ad-image/$name': typeof ApiPublicAdImageNameRoute
   '/api/public/article-image/$name': typeof ApiPublicArticleImageNameRoute
 }
@@ -124,12 +133,13 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/settings'
-    | '/updates'
+    | '/articles/$slug'
     | '/tools/certificates'
     | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
+    | '/articles/'
     | '/api/public/ad-image/$name'
     | '/api/public/article-image/$name'
   fileRoutesByTo: FileRoutesByTo
@@ -137,12 +147,13 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/settings'
-    | '/updates'
+    | '/articles/$slug'
     | '/tools/certificates'
     | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
+    | '/articles'
     | '/api/public/ad-image/$name'
     | '/api/public/article-image/$name'
   id:
@@ -150,12 +161,13 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/settings'
-    | '/updates'
+    | '/articles/$slug'
     | '/tools/certificates'
     | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
     | '/tools/pdf'
+    | '/articles/'
     | '/api/public/ad-image/$name'
     | '/api/public/article-image/$name'
   fileRoutesById: FileRoutesById
@@ -164,12 +176,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   SettingsRoute: typeof SettingsRoute
-  UpdatesRoute: typeof UpdatesRoute
+  ArticlesSlugRoute: typeof ArticlesSlugRoute
   ToolsCertificatesRoute: typeof ToolsCertificatesRoute
   ToolsExcelCertificatesRoute: typeof ToolsExcelCertificatesRoute
   ToolsFontsRoute: typeof ToolsFontsRoute
   ToolsImageCompressorRoute: typeof ToolsImageCompressorRoute
   ToolsPdfRoute: typeof ToolsPdfRoute
+  ArticlesIndexRoute: typeof ArticlesIndexRoute
   ApiPublicAdImageNameRoute: typeof ApiPublicAdImageNameRoute
   ApiPublicArticleImageNameRoute: typeof ApiPublicArticleImageNameRoute
 }
@@ -197,11 +210,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/updates': {
-      id: '/updates'
-      path: '/updates'
-      fullPath: '/updates'
-      preLoaderRoute: typeof UpdatesRouteImport
+    '/articles/': {
+      id: '/articles/'
+      path: '/articles'
+      fullPath: '/articles/'
+      preLoaderRoute: typeof ArticlesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/articles/$slug': {
+      id: '/articles/$slug'
+      path: '/articles/$slug'
+      fullPath: '/articles/$slug'
+      preLoaderRoute: typeof ArticlesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/certificates': {
@@ -260,12 +280,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   SettingsRoute: SettingsRoute,
-  UpdatesRoute: UpdatesRoute,
+  ArticlesSlugRoute: ArticlesSlugRoute,
   ToolsCertificatesRoute: ToolsCertificatesRoute,
   ToolsExcelCertificatesRoute: ToolsExcelCertificatesRoute,
   ToolsFontsRoute: ToolsFontsRoute,
   ToolsImageCompressorRoute: ToolsImageCompressorRoute,
   ToolsPdfRoute: ToolsPdfRoute,
+  ArticlesIndexRoute: ArticlesIndexRoute,
   ApiPublicAdImageNameRoute: ApiPublicAdImageNameRoute,
   ApiPublicArticleImageNameRoute: ApiPublicArticleImageNameRoute,
 }
