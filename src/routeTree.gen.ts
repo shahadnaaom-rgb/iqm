@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ArticlesIndexRouteImport } from './routes/articles/index'
 import { Route as ArticlesSlugRouteImport } from './routes/articles/$slug'
 import { Route as ToolsCertificatesRouteImport } from './routes/tools/certificates'
+import { Route as ToolsExamBuilderRouteImport } from './routes/tools/exam-builder'
 import { Route as ToolsExcelCertificatesRouteImport } from './routes/tools/excel-certificates'
 import { Route as ToolsFontsRouteImport } from './routes/tools/fonts'
 import { Route as ToolsImageCompressorRouteImport } from './routes/tools/image-compressor'
@@ -50,6 +51,11 @@ const ArticlesSlugRoute = ArticlesSlugRouteImport.update({
 const ToolsCertificatesRoute = ToolsCertificatesRouteImport.update({
   id: '/tools/certificates',
   path: '/tools/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsExamBuilderRoute = ToolsExamBuilderRouteImport.update({
+  id: '/tools/exam-builder',
+  path: '/tools/exam-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsExcelCertificatesRoute = ToolsExcelCertificatesRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/exam-builder': typeof ToolsExamBuilderRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/exam-builder': typeof ToolsExamBuilderRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/exam-builder': typeof ToolsExamBuilderRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
   '/tools/image-compressor': typeof ToolsImageCompressorRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/articles/$slug'
     | '/tools/certificates'
+    | '/tools/exam-builder'
     | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/articles/$slug'
     | '/tools/certificates'
+    | '/tools/exam-builder'
     | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/articles/$slug'
     | '/tools/certificates'
+    | '/tools/exam-builder'
     | '/tools/excel-certificates'
     | '/tools/fonts'
     | '/tools/image-compressor'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ArticlesSlugRoute: typeof ArticlesSlugRoute
   ToolsCertificatesRoute: typeof ToolsCertificatesRoute
+  ToolsExamBuilderRoute: typeof ToolsExamBuilderRoute
   ToolsExcelCertificatesRoute: typeof ToolsExcelCertificatesRoute
   ToolsFontsRoute: typeof ToolsFontsRoute
   ToolsImageCompressorRoute: typeof ToolsImageCompressorRoute
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsCertificatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/exam-builder': {
+      id: '/tools/exam-builder'
+      path: '/tools/exam-builder'
+      fullPath: '/tools/exam-builder'
+      preLoaderRoute: typeof ToolsExamBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/excel-certificates': {
       id: '/tools/excel-certificates'
       path: '/tools/excel-certificates'
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ArticlesSlugRoute: ArticlesSlugRoute,
   ToolsCertificatesRoute: ToolsCertificatesRoute,
+  ToolsExamBuilderRoute: ToolsExamBuilderRoute,
   ToolsExcelCertificatesRoute: ToolsExcelCertificatesRoute,
   ToolsFontsRoute: ToolsFontsRoute,
   ToolsImageCompressorRoute: ToolsImageCompressorRoute,
