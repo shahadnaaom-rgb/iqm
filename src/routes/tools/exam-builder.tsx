@@ -228,7 +228,7 @@ function ExamBuilder() {
               <h2 className="font-display font-bold">الرموز الشائعة</h2>
               <span className="text-xs text-muted-foreground">اضغط الرمز لإدراجه</span>
             </div>
-            <Tabs defaultValue={SYMBOL_GROUPS[0].id}>
+            <Tabs defaultValue={SYMBOL_GROUPS[0]?.id ?? "math"}>
               <TabsList className="flex h-auto w-full flex-wrap justify-start">
                 {SYMBOL_GROUPS.map((g) => (
                   <TabsTrigger key={g.id} value={g.id} className="text-xs">
