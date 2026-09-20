@@ -6,7 +6,7 @@ import { cn } from "../../lib/utils";
 
 type Props = {
   block: Block;
-  number?: number;
+  number?: number | undefined;
   selected: boolean;
   exporting: boolean;
   getRect: () => DOMRect | null;
