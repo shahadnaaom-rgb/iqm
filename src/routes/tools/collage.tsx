@@ -37,7 +37,7 @@ export const Route = createFileRoute("/tools/collage")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: CollageTool;
+  component: CollageTool,
 });
 
 function CollageTool() {
