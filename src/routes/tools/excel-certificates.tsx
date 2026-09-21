@@ -262,6 +262,8 @@ function BulkCertificates() {
               </div>
             )}
 
+            <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
+
             {progress ? (
               <div className="grid gap-2">
                 <Progress value={(progress.done / progress.total) * 100} />
