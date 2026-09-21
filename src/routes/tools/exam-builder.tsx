@@ -89,6 +89,40 @@ type ExamBlock = QuestionBlock | ImageBlock;
 type ExamPage = { id: string; blocks: ExamBlock[] };
 type DraggedBlock = { pageId: string; blockId: string };
 type ExportFormat = "png" | "jpeg" | "webp" | "pdf";
+type HeaderTextKey =
+  | "basmala"
+  | "ministry"
+  | "directorate"
+  | "school"
+  | "examTitle"
+  | "subject"
+  | "grade"
+  | "duration"
+  | "dateText";
+type HeaderTextItem = {
+  id: HeaderTextKey;
+  type: "text";
+  label: string;
+  text: string;
+  x: number;
+  y: number;
+  w: number;
+  fontSize: number;
+  align: TextAlign;
+  bold?: boolean;
+};
+type HeaderImageItem = {
+  id: string;
+  type: "image";
+  label: string;
+  src: string;
+  alt: string;
+  x: number;
+  y: number;
+  w: number;
+};
+type HeaderItem = HeaderTextItem | HeaderImageItem;
+type HeaderDrag = { id: string; pageId: string; startX: number; startY: number; originX: number; originY: number };
 
 const EXPORT_FORMATS: { id: ExportFormat; name: string }[] = [
   { id: "pdf", name: "PDF (كل الصفحات)" },
@@ -105,6 +139,17 @@ const EXPORT_SCALES: { id: number; name: string }[] = [
 ];
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const initialHeaderItems = (): HeaderItem[] => [
+  { id: "basmala", type: "text", label: "البسملة", text: "بسم الله الرحمن الرحيم", x: 32, y: 0, w: 36, fontSize: 16, align: "center", bold: true },
+  { id: "ministry", type: "text", label: "الوزارة", text: "وزارة التربية", x: 0, y: 28, w: 28, fontSize: 14, align: "right" },
+  { id: "directorate", type: "text", label: "المديرية", text: "المديرية العامة للتربية", x: 0, y: 48, w: 32, fontSize: 14, align: "right" },
+  { id: "school", type: "text", label: "المدرسة", text: "ثانوية النخبة", x: 0, y: 68, w: 28, fontSize: 14, align: "right" },
+  { id: "examTitle", type: "text", label: "عنوان الامتحان", text: "الامتحان الشهري الأول", x: 34, y: 32, w: 32, fontSize: 22, align: "center", bold: true },
+  { id: "subject", type: "text", label: "المادة", text: "الرياضيات", x: 38, y: 62, w: 24, fontSize: 14, align: "center" },
+  { id: "grade", type: "text", label: "الصف", text: "الصف الخامس العلمي", x: 72, y: 28, w: 28, fontSize: 14, align: "left" },
+  { id: "duration", type: "text", label: "الزمن", text: "الزمن: ساعة واحدة", x: 72, y: 48, w: 28, fontSize: 14, align: "left" },
+  { id: "dateText", type: "text", label: "التاريخ", text: "", x: 72, y: 68, w: 28, fontSize: 14, align: "left" },
+];
 const newQuestion = (html = "اكتب نص السؤال هنا..."): QuestionBlock => ({
   id: makeId(),
   type: "question",
