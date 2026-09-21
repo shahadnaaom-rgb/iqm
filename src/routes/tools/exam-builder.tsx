@@ -248,6 +248,13 @@ function ExamBuilder() {
     );
   };
 
+  /** محاذاة الكتلة نفسها بالنسبة للورقة، مع الحفاظ على محاذاة النص داخلها */
+  const alignBlockToPage = (block: ExamBlock, side: TextAlign) => {
+    const width = block.w ?? (freeMode ? 92 : 100);
+    const x = side === "right" ? 0 : side === "center" ? (100 - width) / 2 : 100 - width;
+    patchBlock(block.id, freeMode ? { ca: side, w: width, x } : { ca: side, w: width });
+  };
+
   const addQuestion = (pageId = pages[0]?.id) => {
     if (!pageId) return;
     const question = newQuestion();
