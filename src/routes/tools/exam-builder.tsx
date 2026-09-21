@@ -20,6 +20,7 @@ import {
   Underline,
   Wand2,
 } from "lucide-react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -66,7 +67,8 @@ const A4_W = 794;
 const A4_H = 1123;
 
 type TextAlign = "right" | "center" | "left";
-type QuestionBlock = {
+type FreePos = { x?: number; y?: number; w?: number };
+type QuestionBlock = FreePos & {
   id: string;
   type: "question";
   html: string;
@@ -74,7 +76,7 @@ type QuestionBlock = {
   fontSize: number;
   align: TextAlign;
 };
-type ImageBlock = {
+type ImageBlock = FreePos & {
   id: string;
   type: "image";
   src: string;
@@ -85,6 +87,21 @@ type ImageBlock = {
 type ExamBlock = QuestionBlock | ImageBlock;
 type ExamPage = { id: string; blocks: ExamBlock[] };
 type DraggedBlock = { pageId: string; blockId: string };
+type ExportFormat = "png" | "jpeg" | "webp" | "pdf";
+
+const EXPORT_FORMATS: { id: ExportFormat; name: string }[] = [
+  { id: "pdf", name: "PDF (كل الصفحات)" },
+  { id: "png", name: "صورة PNG" },
+  { id: "jpeg", name: "صورة JPG" },
+  { id: "webp", name: "صورة WEBP" },
+];
+const EXPORT_SCALES: { id: number; name: string }[] = [
+  { id: 1.5, name: "عادية (~110 نقطة/إنش)" },
+  { id: 2, name: "جيدة (~150 نقطة/إنش)" },
+  { id: 3, name: "عالية (~225 نقطة/إنش)" },
+  { id: 4, name: "فائقة (~300 نقطة/إنش)" },
+  { id: 6, name: "قصوى (~450 نقطة/إنش)" },
+];
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const newQuestion = (html = "اكتب نص السؤال هنا..."): QuestionBlock => ({
@@ -123,17 +140,90 @@ function ExamBuilder() {
   const [showPageNumber, setShowPageNumber] = useState(true);
   const [footerLine, setFooterLine] = useState(true);
   const [columns, setColumns] = useState<1 | 2>(1);
+  const [freeMode, setFreeMode] = useState(false);
   const [pages, setPages] = useState<ExamPage[]>([firstPage()]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragged, setDragged] = useState<DraggedBlock | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
-  const [busy, setBusy] = useState<null | "png" | "pdf">(null);
+  const [busy, setBusy] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
+  const [exportScale, setExportScale] = useState(3);
 
   const editorRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const pageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const wrapRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const imageInput = useRef<HTMLInputElement | null>(null);
+  const freeDrag = useRef<
+    | null
+    | { id: string; pageId: string; startX: number; startY: number; originX: number; originY: number }
+  >(null);
 
   const selectedBlock = pages.flatMap((page) => page.blocks).find((block) => block.id === selectedId);
+
+  // تفعيل/إلغاء التحريك الحر مع الحفاظ على مواقع الكتل الحالية
+  const toggleFreeMode = (enabled: boolean) => {
+    if (enabled) {
+      setPages((current) =>
+        current.map((page) => {
+          const wrap = wrapRefs.current[page.id];
+          const wrapBox = wrap?.getBoundingClientRect();
+          return {
+            ...page,
+            blocks: page.blocks.map((block, index) => {
+              const node = blockRefs.current[block.id];
+              if (!wrapBox || !node || wrapBox.width === 0 || wrapBox.height === 0) {
+                return { ...block, x: 4, y: index * 12, w: 92 };
+              }
+              const box = node.getBoundingClientRect();
+              return {
+                ...block,
+                x: ((wrapBox.right - box.right) / wrapBox.width) * 100,
+                y: ((box.top - wrapBox.top) / wrapBox.height) * 100,
+                w: (box.width / wrapBox.width) * 100,
+              };
+            }),
+          };
+        }),
+      );
+    }
+    setFreeMode(enabled);
+  };
+
+  const onFreePointerDown = (event: ReactPointerEvent, pageId: string, block: ExamBlock) => {
+    if (!freeMode) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedId(block.id);
+    freeDrag.current = {
+      id: block.id,
+      pageId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: block.x ?? 4,
+      originY: block.y ?? 0,
+    };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  };
+
+  const onFreePointerMove = (event: ReactPointerEvent, pageId: string) => {
+    const drag = freeDrag.current;
+    if (!drag || drag.id === undefined) return;
+    const wrap = wrapRefs.current[pageId];
+    if (!wrap) return;
+    const box = wrap.getBoundingClientRect();
+    const dx = ((drag.startX - event.clientX) / box.width) * 100; // RTL: يمين ← يسار
+    const dy = ((event.clientY - drag.startY) / box.height) * 100;
+    const block = pages.flatMap((item) => item.blocks).find((item) => item.id === drag.id);
+    const width = block?.w ?? 92;
+    const x = Math.min(Math.max(0, 100 - width), Math.max(0, drag.originX + dx));
+    const y = Math.min(97, Math.max(0, drag.originY + dy));
+    patchBlock(drag.id, { x, y });
+  };
+
+  const endFreeDrag = () => {
+    freeDrag.current = null;
+  };
 
   const patchBlock = (id: string, patch: Partial<QuestionBlock> | Partial<ImageBlock>) => {
     setPages((current) =>
@@ -295,56 +385,55 @@ function ExamBuilder() {
     setSelectedId(null);
   };
 
-  const renderPage = async (pageId: string) => {
+  const renderPage = async (pageId: string, scale: number) => {
     const node = pageRefs.current[pageId];
     if (!node) throw new Error("الصفحة غير جاهزة");
+    const { default: html2canvas } = await import("html2canvas-pro");
+    return html2canvas(node, { scale, backgroundColor: "#ffffff", useCORS: true });
+  };
+
+  const runExport = async () => {
+    setBusy(true);
     const previous = selectedId;
     setSelectedId(null);
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    const { default: html2canvas } = await import("html2canvas-pro");
-    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
-    setSelectedId(previous);
-    return canvas;
-  };
-
-  const exportPng = async () => {
-    setBusy("png");
     try {
-      for (let index = 0; index < pages.length; index += 1) {
-        const page = pages[index];
-        if (!page) continue;
-        const canvas = await renderPage(page.id);
-        const blob = await new Promise<Blob>((resolve, reject) =>
-          canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("فشل التصدير"))), "image/png"),
-        );
-        downloadBlob(blob, `${examTitle || "أسئلة"}-${index + 1}.png`);
+      const baseName = examTitle || "أسئلة";
+      if (exportFormat === "pdf") {
+        const { jsPDF } = await import("jspdf");
+        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+        for (let index = 0; index < pages.length; index += 1) {
+          const page = pages[index];
+          if (!page) continue;
+          const canvas = await renderPage(page.id, exportScale);
+          if (index > 0) pdf.addPage();
+          pdf.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, 210, 297, undefined, "FAST");
+        }
+        pdf.save(`${baseName}.pdf`);
+        toast.success("تم تصدير ملف PDF");
+      } else {
+        const mime = `image/${exportFormat}` as const;
+        const extension = exportFormat === "jpeg" ? "jpg" : exportFormat;
+        for (let index = 0; index < pages.length; index += 1) {
+          const page = pages[index];
+          if (!page) continue;
+          const canvas = await renderPage(page.id, exportScale);
+          const blob = await new Promise<Blob>((resolve, reject) =>
+            canvas.toBlob(
+              (result) => (result ? resolve(result) : reject(new Error("فشل التصدير"))),
+              mime,
+              exportFormat === "png" ? 1 : 0.96,
+            ),
+          );
+          downloadBlob(blob, `${baseName}-${index + 1}-${canvas.width}x${canvas.height}.${extension}`);
+        }
+        toast.success("تم تصدير الصور بالدقة المختارة");
       }
-      toast.success("تم تصدير الصور");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "تعذر التصدير");
     } finally {
-      setBusy(null);
-    }
-  };
-
-  const exportPdf = async () => {
-    setBusy("pdf");
-    try {
-      const { jsPDF } = await import("jspdf");
-      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-      for (let index = 0; index < pages.length; index += 1) {
-        const page = pages[index];
-        if (!page) continue;
-        const canvas = await renderPage(page.id);
-        if (index > 0) pdf.addPage();
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 210, 297);
-      }
-      pdf.save(`${examTitle || "أسئلة"}.pdf`);
-      toast.success("تم تصدير ملف PDF");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذر التصدير");
-    } finally {
-      setBusy(null);
+      setSelectedId(previous);
+      setBusy(false);
     }
   };
 
@@ -359,14 +448,33 @@ function ExamBuilder() {
       />
 
       <div className="surface sticky top-3 z-30 flex flex-wrap items-center gap-2 p-2.5">
-        <Button onClick={exportPdf} disabled={busy !== null}>
-          {busy === "pdf" ? <Loader2 className="size-4 animate-spin" /> : <FileDown className="size-4" />}
-          تصدير PDF
+        <Button onClick={runExport} disabled={busy}>
+          {busy ? <Loader2 className="size-4 animate-spin" /> : exportFormat === "pdf" ? <FileDown className="size-4" /> : <Download className="size-4" />}
+          تصدير
         </Button>
-        <Button variant="outline" onClick={exportPng} disabled={busy !== null}>
-          {busy === "png" ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
-          تصدير PNG
-        </Button>
+        <select
+          value={exportFormat}
+          onChange={(event) => setExportFormat(event.target.value as ExportFormat)}
+          className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          aria-label="صيغة التصدير"
+        >
+          {EXPORT_FORMATS.map((item) => (
+            <option key={item.id} value={item.id}>{item.name}</option>
+          ))}
+        </select>
+        <select
+          value={exportScale}
+          onChange={(event) => setExportScale(Number(event.target.value))}
+          className="h-9 rounded-lg border border-border bg-background px-2 text-sm"
+          aria-label="دقة التصدير"
+        >
+          {EXPORT_SCALES.map((item) => (
+            <option key={item.id} value={item.id}>{item.name}</option>
+          ))}
+        </select>
+        <span className="text-xs text-muted-foreground">
+          {Math.round(A4_W * exportScale)}×{Math.round(A4_H * exportScale)} بكسل
+        </span>
         <Button variant="outline" onClick={() => addQuestion()}>
           <Plus className="size-4" /> سؤال
         </Button>
@@ -446,9 +554,24 @@ function ExamBuilder() {
           <div className="surface grid gap-3 p-4">
             <h2 className="font-display font-bold">تخطيط الورقة</h2>
             <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" variant={columns === 1 ? "default" : "outline"} onClick={() => setColumns(1)}>عمود واحد</Button>
-              <Button size="sm" variant={columns === 2 ? "default" : "outline"} onClick={() => setColumns(2)}>عمودان</Button>
+              <Button size="sm" disabled={freeMode} variant={columns === 1 ? "default" : "outline"} onClick={() => setColumns(1)}>عمود واحد</Button>
+              <Button size="sm" disabled={freeMode} variant={columns === 2 ? "default" : "outline"} onClick={() => setColumns(2)}>عمودان</Button>
             </div>
+            <label className="flex items-center justify-between text-sm">
+              تحريك الأسئلة بحرية
+              <Switch checked={freeMode} onCheckedChange={toggleFreeMode} />
+            </label>
+            <p className="text-xs leading-6 text-muted-foreground">
+              {freeMode
+                ? "اسحب الكتلة من أي مكان فيها لتضعها حيث تشاء داخل الورقة، وتحكّم بعرضها من الأسفل."
+                : "الترتيب تلقائي من الأعلى للأسفل؛ فعّل التحريك الحر لوضع كل سؤال في المكان الذي تريده."}
+            </p>
+            {freeMode && selectedBlock && (
+              <div className="grid gap-1.5">
+                <Label htmlFor="free-width">عرض الكتلة: {Math.round(selectedBlock.w ?? 92)}%</Label>
+                <input id="free-width" className="accent-primary" type="range" min={15} max={100} value={Math.round(selectedBlock.w ?? 92)} onChange={(event) => patchBlock(selectedBlock.id, { w: Number(event.target.value) })} />
+              </div>
+            )}
           </div>
 
           <div className="surface grid gap-3 p-4">
@@ -496,6 +619,7 @@ function ExamBuilder() {
               </div>
               <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H }} onClick={() => setSelectedId(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
                 {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"}>
+                  <div className="mb-2 text-center text-base font-bold">بسم الله الرحمن الرحيم</div>
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm leading-7"><div>{ministry}</div><div>{directorate}</div><div>{school}</div></div>
                     <div className="flex-1 text-center">{logo && <img src={logo} alt="شعار" className="mx-auto mb-1.5 h-14 object-contain" />}<div className="text-xl font-bold">{examTitle}</div><div className="text-sm">{subject}</div></div>
@@ -503,15 +627,50 @@ function ExamBuilder() {
                   </div>
                 </div>}
 
-                <div className={columns === 2 ? "exam-blocks exam-blocks-columns" : "exam-blocks"}>
+                <div
+                  ref={(element) => { wrapRefs.current[page.id] = element; }}
+                  className={freeMode ? "exam-blocks exam-blocks-free" : columns === 2 ? "exam-blocks exam-blocks-columns" : "exam-blocks"}
+                  onPointerMove={freeMode ? (event) => onFreePointerMove(event, page.id) : undefined}
+                  onPointerUp={freeMode ? endFreeDrag : undefined}
+                  onPointerLeave={freeMode ? endFreeDrag : undefined}
+                >
                   {page.blocks.map((block) => {
                     const currentQuestionNumber = block.type === "question" ? ++questionNumber : null;
                     const selected = block.id === selectedId;
-                    return <div key={block.id} draggable onDragStart={(event) => { setDragged({ pageId: page.id, blockId: block.id }); event.dataTransfer.effectAllowed = "move"; }} onDragEnd={() => { setDragged(null); setDropTarget(null); }} onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); setDropTarget(block.id); }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); dropBlock(page.id, block.id); }} onClick={(event) => { event.stopPropagation(); setSelectedId(block.id); }} className={`exam-block group ${selected ? "exam-block-selected" : ""} ${dropTarget === block.id && dragged?.blockId !== block.id ? "exam-block-drop" : ""}`}>
+                    const freeStyle = freeMode
+                      ? { right: `${block.x ?? 4}%`, top: `${block.y ?? 0}%`, width: `${block.w ?? 92}%`, cursor: "move" as const }
+                      : undefined;
+                    return <div
+                      key={block.id}
+                      ref={(element) => { blockRefs.current[block.id] = element; }}
+                      draggable={!freeMode}
+                      style={freeStyle}
+                      onPointerDown={freeMode ? (event) => onFreePointerDown(event, page.id, block) : undefined}
+                      onDragStart={freeMode ? undefined : (event) => { setDragged({ pageId: page.id, blockId: block.id }); event.dataTransfer.effectAllowed = "move"; }}
+                      onDragEnd={() => { setDragged(null); setDropTarget(null); }}
+                      onDragOver={freeMode ? undefined : (event) => { event.preventDefault(); event.stopPropagation(); setDropTarget(block.id); }}
+                      onDrop={freeMode ? undefined : (event) => { event.preventDefault(); event.stopPropagation(); dropBlock(page.id, block.id); }}
+                      onClick={(event) => { event.stopPropagation(); setSelectedId(block.id); }}
+                      className={`exam-block group ${freeMode ? "exam-block-free" : ""} ${selected ? "exam-block-selected" : ""} ${dropTarget === block.id && dragged?.blockId !== block.id ? "exam-block-drop" : ""}`}
+                    >
                       <div className="exam-block-handle" aria-hidden="true"><GripVertical className="size-4" /></div>
                       {block.type === "question" ? <div className="flex items-start gap-2">
                         <span className="shrink-0 pt-0.5 font-bold">س{currentQuestionNumber}.</span>
-                        <div ref={(element) => { editorRefs.current[block.id] = element; }} contentEditable suppressContentEditableWarning onFocus={() => setSelectedId(block.id)} onInput={(event) => patchBlock(block.id, { html: event.currentTarget.innerHTML })} className="min-w-0 flex-1 outline-none" style={{ fontFamily: block.fontFamily, fontSize: block.fontSize, textAlign: block.align }} dangerouslySetInnerHTML={{ __html: block.html }} />
+                        <div
+                          ref={(element) => {
+                            editorRefs.current[block.id] = element;
+                            if (element && element !== document.activeElement && element.innerHTML !== block.html) {
+                              element.innerHTML = block.html;
+                            }
+                          }}
+                          contentEditable
+                          suppressContentEditableWarning
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onFocus={() => setSelectedId(block.id)}
+                          onInput={(event) => patchBlock(block.id, { html: event.currentTarget.innerHTML })}
+                          className="min-w-0 flex-1 outline-none"
+                          style={{ fontFamily: block.fontFamily, fontSize: block.fontSize, textAlign: block.align }}
+                        />
                       </div> : <div style={{ textAlign: block.align }}><img src={block.src} alt={block.alt} className="inline-block max-h-72 object-contain" style={{ width: `${block.width}%` }} /></div>}
                     </div>;
                   })}
