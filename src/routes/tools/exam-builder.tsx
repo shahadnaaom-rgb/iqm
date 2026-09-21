@@ -693,9 +693,11 @@ function ExamBuilder() {
                 {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"} style={{ minHeight: headerSpace }}>
                   <div className="mb-2 text-center text-base font-bold">بسم الله الرحمن الرحيم</div>
                   <div className="flex items-center justify-between gap-3">
+                    {headerImageRight && <img src={headerImageRight} alt="صورة يمين الرأس" className="object-contain" style={{ height: headerImageSize }} />}
                     <div className="text-sm leading-7"><div>{ministry}</div><div>{directorate}</div><div>{school}</div></div>
-                    <div className="flex-1 text-center">{logo && <img src={logo} alt="شعار" className="mx-auto mb-1.5 h-14 object-contain" />}<div className="text-xl font-bold">{examTitle}</div><div className="text-sm">{subject}</div></div>
+                    <div className="flex-1 text-center">{logo && <img src={logo} alt="شعار" className="mx-auto mb-1.5 object-contain" style={{ height: logoSize }} />}<div className="text-xl font-bold">{examTitle}</div><div className="text-sm">{subject}</div></div>
                     <div className="text-left text-sm leading-7"><div>{grade}</div><div>الزمن: {duration}</div>{dateText && <div>التاريخ: {dateText}</div>}</div>
+                    {headerImageLeft && <img src={headerImageLeft} alt="صورة يسار الرأس" className="object-contain" style={{ height: headerImageSize }} />}
                   </div>
                 </div>}
 
