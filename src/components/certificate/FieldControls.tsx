@@ -149,13 +149,50 @@ export function FieldControls({
         display={`${Math.round(field.letterSpacing * 100)}`}
       />
 
+      <div className="grid gap-2 rounded-lg border border-border p-3">
+        <Label>المحاذاة بالنسبة للقالب</Label>
+        <p className="text-xs text-muted-foreground">
+          تضع الحقل في مكانه على القالب، وتبقى محاذاة النص أعلاه كما هي.
+        </p>
+        <div className="grid grid-cols-3 gap-1">
+          {(
+            [
+              { v: "right" as const, label: "يمين" },
+              { v: "center" as const, label: "وسط أفقي" },
+              { v: "left" as const, label: "يسار" },
+            ]
+          ).map(({ v, label }) => (
+            <Button
+              key={v}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onChange({ x: canvasX(field, v) })}
+            >
+              {label}
+            </Button>
+          ))}
+          {(
+            [
+              { v: "top" as const, label: "أعلى" },
+              { v: "middle" as const, label: "وسط رأسي" },
+              { v: "bottom" as const, label: "أسفل" },
+            ]
+          ).map(({ v, label }) => (
+            <Button
+              key={v}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onChange({ y: canvasY(field, v) })}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2 pt-1">
-        <Button type="button" variant="outline" size="sm" onClick={() => onChange({ x: 0.5 })}>
-          توسيط أفقي
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => onChange({ y: 0.5 })}>
-          توسيط رأسي
-        </Button>
         <Button
           type="button"
           variant="outline"
@@ -201,4 +238,24 @@ function SliderRow({
       />
     </div>
   );
+}
+
+const PAD = 0.04;
+const clamp = (value: number) => Math.min(1, Math.max(0, value));
+
+/** موضع الحقل الأفقي على القالب مع مراعاة محاذاة النص داخله */
+function canvasX(field: Field, side: "right" | "center" | "left") {
+  const w = field.maxWidth;
+  const anchor = field.align === "right" ? 1 : field.align === "left" ? 0 : 0.5;
+  if (side === "right") return clamp(1 - PAD - w * (1 - anchor));
+  if (side === "left") return clamp(PAD + w * anchor);
+  return clamp(0.5 + w * (anchor - 0.5));
+}
+
+/** موضع الحقل الرأسي على القالب */
+function canvasY(field: Field, side: "top" | "middle" | "bottom") {
+  const half = field.fontSize * 0.75;
+  if (side === "top") return clamp(PAD + half);
+  if (side === "bottom") return clamp(1 - PAD - half);
+  return 0.5;
 }

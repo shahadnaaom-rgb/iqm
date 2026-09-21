@@ -67,7 +67,8 @@ const A4_W = 794;
 const A4_H = 1123;
 
 type TextAlign = "right" | "center" | "left";
-type FreePos = { x?: number; y?: number; w?: number };
+/** x/y/w للتحريك الحر، و ca = محاذاة الكتلة نفسها بالنسبة للورقة */
+type FreePos = { x?: number; y?: number; w?: number; ca?: TextAlign };
 type QuestionBlock = FreePos & {
   id: string;
   type: "question";
@@ -145,6 +146,13 @@ function ExamBuilder() {
   const [marginY, setMarginY] = useState(40);
   const [headerSpace, setHeaderSpace] = useState(120);
   const [footerSpace, setFooterSpace] = useState(70);
+  const [headerImageRight, setHeaderImageRight] = useState<string | null>(null);
+  const [headerImageLeft, setHeaderImageLeft] = useState<string | null>(null);
+  const [headerImageSize, setHeaderImageSize] = useState(56);
+  const [logoSize, setLogoSize] = useState(56);
+  const [footerImage, setFooterImage] = useState<string | null>(null);
+  const [footerImageSize, setFooterImageSize] = useState(48);
+  const [footerImageAlign, setFooterImageAlign] = useState<TextAlign>("center");
   const [pages, setPages] = useState<ExamPage[]>([firstPage()]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragged, setDragged] = useState<DraggedBlock | null>(null);
@@ -238,6 +246,13 @@ function ExamBuilder() {
         ),
       })),
     );
+  };
+
+  /** محاذاة الكتلة نفسها بالنسبة للورقة، مع الحفاظ على محاذاة النص داخلها */
+  const alignBlockToPage = (block: ExamBlock, side: TextAlign) => {
+    const width = block.w ?? (freeMode ? 92 : 100);
+    const x = side === "right" ? 0 : side === "center" ? (100 - width) / 2 : 100 - width;
+    patchBlock(block.id, freeMode ? { ca: side, w: width, x } : { ca: side, w: width });
   };
 
   const addQuestion = (pageId = pages[0]?.id) => {
@@ -366,12 +381,13 @@ function ExamBuilder() {
     reader.readAsDataURL(file);
   };
 
-  const onLogo = (file?: File) => {
+  const readImage = (file: File | undefined, apply: (dataUrl: string) => void) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setLogo(String(reader.result));
+    reader.onload = () => apply(String(reader.result));
     reader.readAsDataURL(file);
   };
+  const onLogo = (file?: File) => readImage(file, setLogo);
 
   const addPage = () => {
     const page = { id: makeId(), blocks: [newQuestion()] };
@@ -543,13 +559,28 @@ function ExamBuilder() {
                   </div>
                 )}
                 <div className="grid gap-1.5">
-                  <Label>المحاذاة</Label>
+                  <Label>محاذاة النص داخل الكتلة</Label>
                   <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
                     {(["right", "center", "left"] as TextAlign[]).map((align) => {
                       const Icon = align === "right" ? AlignRight : align === "center" ? AlignCenter : AlignLeft;
                       return <Button key={align} variant={selectedBlock.align === align ? "default" : "ghost"} size="sm" onClick={() => patchBlock(selectedBlock.id, { align })} aria-label={`محاذاة ${align}`}><Icon className="size-4" /></Button>;
                     })}
                   </div>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>محاذاة الكتلة بالنسبة للورقة</Label>
+                  <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
+                    {(["right", "center", "left"] as TextAlign[]).map((side) => {
+                      const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
+                      const active = (selectedBlock.ca ?? "right") === side;
+                      return <Button key={side} variant={active ? "default" : "ghost"} size="sm" onClick={() => alignBlockToPage(selectedBlock, side)} aria-label={`محاذاة الكتلة ${side}`}><Icon className="size-4" /></Button>;
+                    })}
+                  </div>
+                  <p className="text-xs leading-6 text-muted-foreground">مستقلة عن محاذاة النص؛ اضبط عرض الكتلة لتظهر النتيجة.</p>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="block-width">عرض الكتلة: {Math.round(selectedBlock.w ?? (freeMode ? 92 : 100))}%</Label>
+                  <input id="block-width" className="accent-primary" type="range" min={15} max={100} value={Math.round(selectedBlock.w ?? (freeMode ? 92 : 100))} onChange={(event) => patchBlock(selectedBlock.id, { w: Number(event.target.value) })} />
                 </div>
               </>
             )}
@@ -570,12 +601,6 @@ function ExamBuilder() {
                 ? "اسحب الكتلة من أي مكان فيها لتضعها حيث تشاء داخل الورقة، وتحكّم بعرضها من الأسفل."
                 : "الترتيب تلقائي من الأعلى للأسفل؛ فعّل التحريك الحر لوضع كل سؤال في المكان الذي تريده."}
             </p>
-            {freeMode && selectedBlock && (
-              <div className="grid gap-1.5">
-                <Label htmlFor="free-width">عرض الكتلة: {Math.round(selectedBlock.w ?? 92)}%</Label>
-                <input id="free-width" className="accent-primary" type="range" min={15} max={100} value={Math.round(selectedBlock.w ?? 92)} onChange={(event) => patchBlock(selectedBlock.id, { w: Number(event.target.value) })} />
-              </div>
-            )}
           </div>
 
           <div className="surface grid gap-3 p-4">
@@ -610,8 +635,16 @@ function ExamBuilder() {
               <Field label="الصف" value={grade} onChange={setGrade} />
               <Field label="الزمن" value={duration} onChange={setDuration} />
               <Field label="التاريخ" value={dateText} onChange={setDateText} />
-              <div className="grid gap-1.5"><Label className="text-xs">شعار اختياري</Label><Input type="file" accept="image/*" onChange={(event) => onLogo(event.target.files?.[0])} /></div>
-              {logo && <Button variant="ghost" size="sm" onClick={() => setLogo(null)}><Trash2 className="size-4" /> إزالة الشعار</Button>}
+              <div className="grid gap-1.5"><Label className="text-xs">شعار وسط الرأس</Label><Input type="file" accept="image/*" onChange={(event) => onLogo(event.target.files?.[0])} /></div>
+              {logo && <>
+                <div className="grid gap-1.5"><Label htmlFor="logo-size" className="text-xs">حجم الشعار: {logoSize}px</Label><input id="logo-size" className="accent-primary" type="range" min={24} max={140} value={logoSize} onChange={(event) => setLogoSize(Number(event.target.value))} /></div>
+                <Button variant="ghost" size="sm" onClick={() => setLogo(null)}><Trash2 className="size-4" /> إزالة الشعار</Button>
+              </>}
+              <div className="grid gap-1.5"><Label className="text-xs">صورة يمين الرأس</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setHeaderImageRight)} /></div>
+              {headerImageRight && <Button variant="ghost" size="sm" onClick={() => setHeaderImageRight(null)}><Trash2 className="size-4" /> إزالة صورة اليمين</Button>}
+              <div className="grid gap-1.5"><Label className="text-xs">صورة يسار الرأس</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setHeaderImageLeft)} /></div>
+              {headerImageLeft && <Button variant="ghost" size="sm" onClick={() => setHeaderImageLeft(null)}><Trash2 className="size-4" /> إزالة صورة اليسار</Button>}
+              {(headerImageRight || headerImageLeft) && <div className="grid gap-1.5"><Label htmlFor="header-image-size" className="text-xs">حجم صور الرأس: {headerImageSize}px</Label><input id="header-image-size" className="accent-primary" type="range" min={20} max={140} value={headerImageSize} onChange={(event) => setHeaderImageSize(Number(event.target.value))} /></div>}
               <label className="flex items-center justify-between text-xs">خط فاصل أسفل الرأس<Switch checked={headerLine} onCheckedChange={setHeaderLine} /></label>
             </div>}
           </div>
@@ -621,6 +654,20 @@ function ExamBuilder() {
             {showFooter && <div className="grid gap-3">
               <Field label="سطر الختام" value={footerNote} onChange={setFooterNote} />
               <div className="grid gap-1.5"><Label className="text-xs">نص التذييل</Label><Textarea value={footerText} onChange={(event) => setFooterText(event.target.value)} rows={2} /></div>
+              <div className="grid gap-1.5"><Label className="text-xs">صورة أو ختم في التذييل</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setFooterImage)} /></div>
+              {footerImage && <>
+                <div className="grid gap-1.5"><Label htmlFor="footer-image-size" className="text-xs">حجم الصورة: {footerImageSize}px</Label><input id="footer-image-size" className="accent-primary" type="range" min={20} max={160} value={footerImageSize} onChange={(event) => setFooterImageSize(Number(event.target.value))} /></div>
+                <div className="grid gap-1.5">
+                  <Label className="text-xs">محاذاة الصورة</Label>
+                  <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
+                    {(["right", "center", "left"] as TextAlign[]).map((side) => {
+                      const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
+                      return <Button key={side} variant={footerImageAlign === side ? "default" : "ghost"} size="sm" onClick={() => setFooterImageAlign(side)} aria-label={`محاذاة صورة التذييل ${side}`}><Icon className="size-4" /></Button>;
+                    })}
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setFooterImage(null)}><Trash2 className="size-4" /> إزالة الصورة</Button>
+              </>}
               <label className="flex items-center justify-between text-xs">إظهار رقم الصفحة<Switch checked={showPageNumber} onCheckedChange={setShowPageNumber} /></label>
               <label className="flex items-center justify-between text-xs">خط فاصل أعلى التذييل<Switch checked={footerLine} onCheckedChange={setFooterLine} /></label>
             </div>}
@@ -646,9 +693,11 @@ function ExamBuilder() {
                 {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"} style={{ minHeight: headerSpace }}>
                   <div className="mb-2 text-center text-base font-bold">بسم الله الرحمن الرحيم</div>
                   <div className="flex items-center justify-between gap-3">
+                    {headerImageRight && <img src={headerImageRight} alt="صورة يمين الرأس" className="object-contain" style={{ height: headerImageSize }} />}
                     <div className="text-sm leading-7"><div>{ministry}</div><div>{directorate}</div><div>{school}</div></div>
-                    <div className="flex-1 text-center">{logo && <img src={logo} alt="شعار" className="mx-auto mb-1.5 h-14 object-contain" />}<div className="text-xl font-bold">{examTitle}</div><div className="text-sm">{subject}</div></div>
+                    <div className="flex-1 text-center">{logo && <img src={logo} alt="شعار" className="mx-auto mb-1.5 object-contain" style={{ height: logoSize }} />}<div className="text-xl font-bold">{examTitle}</div><div className="text-sm">{subject}</div></div>
                     <div className="text-left text-sm leading-7"><div>{grade}</div><div>الزمن: {duration}</div>{dateText && <div>التاريخ: {dateText}</div>}</div>
+                    {headerImageLeft && <img src={headerImageLeft} alt="صورة يسار الرأس" className="object-contain" style={{ height: headerImageSize }} />}
                   </div>
                 </div>}
 
@@ -662,9 +711,17 @@ function ExamBuilder() {
                   {page.blocks.map((block) => {
                     const currentQuestionNumber = block.type === "question" ? ++questionNumber : null;
                     const selected = block.id === selectedId;
+                    const side = block.ca ?? "right";
+                    const flowStyle = block.w
+                      ? {
+                          width: `${block.w}%`,
+                          marginInlineStart: side === "right" ? 0 : "auto",
+                          marginInlineEnd: side === "left" ? 0 : "auto",
+                        }
+                      : undefined;
                     const freeStyle = freeMode
                       ? { right: `${block.x ?? 4}%`, top: `${block.y ?? 0}%`, width: `${block.w ?? 92}%`, cursor: "move" as const }
-                      : undefined;
+                      : flowStyle;
                     return <div
                       key={block.id}
                       ref={(element) => { blockRefs.current[block.id] = element; }}
@@ -702,7 +759,7 @@ function ExamBuilder() {
                   {page.blocks.length === 0 && <Button variant="outline" className="m-auto" onClick={(event) => { event.stopPropagation(); addQuestion(page.id); }}><Plus className="size-4" /> إضافة أول سؤال</Button>}
                 </div>
 
-                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"} style={{ minHeight: footerSpace }}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
+                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"} style={{ minHeight: footerSpace }}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{footerImage && <div style={{ textAlign: footerImageAlign }}><img src={footerImage} alt="صورة التذييل" className="inline-block object-contain" style={{ height: footerImageSize }} /></div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
               </div>
             </div>
           ))}
