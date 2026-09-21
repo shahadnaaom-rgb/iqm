@@ -239,3 +239,23 @@ function SliderRow({
     </div>
   );
 }
+
+const PAD = 0.04;
+const clamp = (value: number) => Math.min(1, Math.max(0, value));
+
+/** موضع الحقل الأفقي على القالب مع مراعاة محاذاة النص داخله */
+function canvasX(field: Field, side: "right" | "center" | "left") {
+  const w = field.maxWidth;
+  const anchor = field.align === "right" ? 1 : field.align === "left" ? 0 : 0.5;
+  if (side === "right") return clamp(1 - PAD - w * (1 - anchor));
+  if (side === "left") return clamp(PAD + w * anchor);
+  return clamp(0.5 + w * (anchor - 0.5));
+}
+
+/** موضع الحقل الرأسي على القالب */
+function canvasY(field: Field, side: "top" | "middle" | "bottom") {
+  const half = field.fontSize * 0.75;
+  if (side === "top") return clamp(PAD + half);
+  if (side === "bottom") return clamp(1 - PAD - half);
+  return 0.5;
+}
