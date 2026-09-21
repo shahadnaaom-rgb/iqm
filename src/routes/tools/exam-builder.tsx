@@ -141,6 +141,10 @@ function ExamBuilder() {
   const [footerLine, setFooterLine] = useState(true);
   const [columns, setColumns] = useState<1 | 2>(1);
   const [freeMode, setFreeMode] = useState(false);
+  const [marginX, setMarginX] = useState(44);
+  const [marginY, setMarginY] = useState(40);
+  const [headerSpace, setHeaderSpace] = useState(120);
+  const [footerSpace, setFooterSpace] = useState(70);
   const [pages, setPages] = useState<ExamPage[]>([firstPage()]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragged, setDragged] = useState<DraggedBlock | null>(null);
@@ -575,6 +579,27 @@ function ExamBuilder() {
           </div>
 
           <div className="surface grid gap-3 p-4">
+            <h2 className="font-display font-bold">مساحات الصفحة</h2>
+            <div className="grid gap-1.5">
+              <Label htmlFor="margin-x">هامش الجانبين: {marginX}px</Label>
+              <input id="margin-x" className="accent-primary" type="range" min={10} max={120} value={marginX} onChange={(event) => setMarginX(Number(event.target.value))} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="margin-y">هامش الأعلى والأسفل: {marginY}px</Label>
+              <input id="margin-y" className="accent-primary" type="range" min={10} max={120} value={marginY} onChange={(event) => setMarginY(Number(event.target.value))} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="header-space">مساحة الرأس: {headerSpace}px</Label>
+              <input id="header-space" className="accent-primary" type="range" min={0} max={320} step={5} value={headerSpace} onChange={(event) => setHeaderSpace(Number(event.target.value))} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="footer-space">مساحة التذييل: {footerSpace}px</Label>
+              <input id="footer-space" className="accent-primary" type="range" min={0} max={250} step={5} value={footerSpace} onChange={(event) => setFooterSpace(Number(event.target.value))} />
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => { setMarginX(44); setMarginY(40); setHeaderSpace(120); setFooterSpace(70); }}>إرجاع القياسات الافتراضية</Button>
+          </div>
+
+          <div className="surface grid gap-3 p-4">
             <div className="flex items-center justify-between"><h2 className="font-display font-bold">رأس الورقة</h2><Switch checked={showHeader} onCheckedChange={setShowHeader} /></div>
             {showHeader && <div className="grid gap-3">
               <Field label="الوزارة" value={ministry} onChange={setMinistry} />
@@ -617,8 +642,8 @@ function ExamBuilder() {
                 <span>صفحة {pageIndex + 1}</span>
                 <div className="flex gap-1"><Button variant="ghost" size="sm" onClick={() => addQuestion(page.id)}><Plus className="size-4" /> سؤال</Button><Button variant="ghost" size="sm" onClick={() => removePage(page.id)}><Trash2 className="size-4" /> حذف الصفحة</Button></div>
               </div>
-              <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H }} onClick={() => setSelectedId(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
-                {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"}>
+              <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H, padding: `${marginY}px ${marginX}px` }} onClick={() => setSelectedId(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
+                {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"} style={{ minHeight: headerSpace }}>
                   <div className="mb-2 text-center text-base font-bold">بسم الله الرحمن الرحيم</div>
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm leading-7"><div>{ministry}</div><div>{directorate}</div><div>{school}</div></div>
@@ -677,7 +702,7 @@ function ExamBuilder() {
                   {page.blocks.length === 0 && <Button variant="outline" className="m-auto" onClick={(event) => { event.stopPropagation(); addQuestion(page.id); }}><Plus className="size-4" /> إضافة أول سؤال</Button>}
                 </div>
 
-                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
+                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"} style={{ minHeight: footerSpace }}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
               </div>
             </div>
           ))}
