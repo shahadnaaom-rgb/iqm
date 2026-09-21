@@ -601,12 +601,6 @@ function ExamBuilder() {
                 ? "اسحب الكتلة من أي مكان فيها لتضعها حيث تشاء داخل الورقة، وتحكّم بعرضها من الأسفل."
                 : "الترتيب تلقائي من الأعلى للأسفل؛ فعّل التحريك الحر لوضع كل سؤال في المكان الذي تريده."}
             </p>
-            {freeMode && selectedBlock && (
-              <div className="grid gap-1.5">
-                <Label htmlFor="free-width">عرض الكتلة: {Math.round(selectedBlock.w ?? 92)}%</Label>
-                <input id="free-width" className="accent-primary" type="range" min={15} max={100} value={Math.round(selectedBlock.w ?? 92)} onChange={(event) => patchBlock(selectedBlock.id, { w: Number(event.target.value) })} />
-              </div>
-            )}
           </div>
 
           <div className="surface grid gap-3 p-4">
