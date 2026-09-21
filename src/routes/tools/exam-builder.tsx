@@ -374,12 +374,13 @@ function ExamBuilder() {
     reader.readAsDataURL(file);
   };
 
-  const onLogo = (file?: File) => {
+  const readImage = (file: File | undefined, apply: (dataUrl: string) => void) => {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setLogo(String(reader.result));
+    reader.onload = () => apply(String(reader.result));
     reader.readAsDataURL(file);
   };
+  const onLogo = (file?: File) => readImage(file, setLogo);
 
   const addPage = () => {
     const page = { id: makeId(), blocks: [newQuestion()] };
