@@ -1,52 +1,34 @@
-/** قوالب تجميع الصور — الرسم يتم على Canvas مباشرة لأعلى دقة */
+/** تجميع عدة صور في قالب واحد — كل العمل يتم داخل المتصفح */
 
 export type Cell = { x: number; y: number; w: number; h: number };
 
 export type CollageTemplate = {
   id: string;
-  label: string;
+  name: string;
   cells: Cell[];
 };
 
 export const COLLAGE_TEMPLATES: CollageTemplate[] = [
-  { id: "1", label: "صورة واحدة", cells: [{ x: 0, y: 0, w: 1, h: 1 }] },
+  { id: "single", name: "صورة واحدة", cells: [{ x: 0, y: 0, w: 1, h: 1 }] },
   {
-    id: "2h",
-    label: "صورتان جانبيتان",
+    id: "cols-2",
+    name: "عمودان",
     cells: [
       { x: 0, y: 0, w: 0.5, h: 1 },
       { x: 0.5, y: 0, w: 0.5, h: 1 },
     ],
   },
   {
-    id: "2v",
-    label: "صورتان فوق بعض",
+    id: "rows-2",
+    name: "صفّان",
     cells: [
       { x: 0, y: 0, w: 1, h: 0.5 },
       { x: 0, y: 0.5, w: 1, h: 0.5 },
     ],
   },
   {
-    id: "3v",
-    label: "ثلاث صور طولية",
-    cells: [
-      { x: 0, y: 0, w: 1, h: 1 / 3 },
-      { x: 0, y: 1 / 3, w: 1, h: 1 / 3 },
-      { x: 0, y: 2 / 3, w: 1, h: 1 / 3 },
-    ],
-  },
-  {
-    id: "1+2",
-    label: "صورة كبيرة + صورتان",
-    cells: [
-      { x: 0, y: 0, w: 1, h: 0.6 },
-      { x: 0, y: 0.6, w: 0.5, h: 0.4 },
-      { x: 0.5, y: 0.6, w: 0.5, h: 0.4 },
-    ],
-  },
-  {
-    id: "2x2",
-    label: "شبكة 2×2",
+    id: "grid-2x2",
+    name: "شبكة ٢×٢",
     cells: [
       { x: 0, y: 0, w: 0.5, h: 0.5 },
       { x: 0.5, y: 0, w: 0.5, h: 0.5 },
@@ -55,68 +37,103 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
     ],
   },
   {
-    id: "1+3",
-    label: "صورة يمين + ثلاث يسار",
+    id: "rows-3",
+    name: "ثلاثة صفوف",
     cells: [
-      { x: 0, y: 0, w: 0.6, h: 1 },
-      { x: 0.6, y: 0, w: 0.4, h: 1 / 3 },
-      { x: 0.6, y: 1 / 3, w: 0.4, h: 1 / 3 },
-      { x: 0.6, y: 2 / 3, w: 0.4, h: 1 / 3 },
+      { x: 0, y: 0, w: 1, h: 1 / 3 },
+      { x: 0, y: 1 / 3, w: 1, h: 1 / 3 },
+      { x: 0, y: 2 / 3, w: 1, h: 1 / 3 },
     ],
   },
-  { id: "3x3", label: "شبكة 3×3", cells: grid(3, 3) },
-  { id: "4x2", label: "شبكة 4×2", cells: grid(4, 2) },
+  {
+    id: "cols-3",
+    name: "ثلاثة أعمدة",
+    cells: [
+      { x: 0, y: 0, w: 1 / 3, h: 1 },
+      { x: 1 / 3, y: 0, w: 1 / 3, h: 1 },
+      { x: 2 / 3, y: 0, w: 1 / 3, h: 1 },
+    ],
+  },
+  {
+    id: "big-right-2",
+    name: "صورة كبيرة + صورتان",
+    cells: [
+      { x: 0, y: 0, w: 0.62, h: 1 },
+      { x: 0.62, y: 0, w: 0.38, h: 0.5 },
+      { x: 0.62, y: 0.5, w: 0.38, h: 0.5 },
+    ],
+  },
+  {
+    id: "big-top-3",
+    name: "صورة أعلى + ثلاث",
+    cells: [
+      { x: 0, y: 0, w: 1, h: 0.58 },
+      { x: 0, y: 0.58, w: 1 / 3, h: 0.42 },
+      { x: 1 / 3, y: 0.58, w: 1 / 3, h: 0.42 },
+      { x: 2 / 3, y: 0.58, w: 1 / 3, h: 0.42 },
+    ],
+  },
+  {
+    id: "grid-2x3",
+    name: "شبكة ٢×٣",
+    cells: [
+      { x: 0, y: 0, w: 0.5, h: 1 / 3 },
+      { x: 0.5, y: 0, w: 0.5, h: 1 / 3 },
+      { x: 0, y: 1 / 3, w: 0.5, h: 1 / 3 },
+      { x: 0.5, y: 1 / 3, w: 0.5, h: 1 / 3 },
+      { x: 0, y: 2 / 3, w: 0.5, h: 1 / 3 },
+      { x: 0.5, y: 2 / 3, w: 0.5, h: 1 / 3 },
+    ],
+  },
+  {
+    id: "grid-3x3",
+    name: "شبكة ٣×٣",
+    cells: Array.from({ length: 9 }, (_, i) => ({
+      x: (i % 3) / 3,
+      y: Math.floor(i / 3) / 3,
+      w: 1 / 3,
+      h: 1 / 3,
+    })),
+  },
 ];
 
-function grid(cols: number, rows: number): Cell[] {
-  const cells: Cell[] = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      cells.push({ x: c / cols, y: r / rows, w: 1 / cols, h: 1 / rows });
-    }
-  }
-  return cells;
-}
+export const RATIOS = [
+  { id: "1-1", name: "مربع ١:١", value: 1 },
+  { id: "4-5", name: "٤:٥ (إنستغرام)", value: 4 / 5 },
+  { id: "3-4", name: "٣:٤", value: 3 / 4 },
+  { id: "16-9", name: "١٦:٩ عريض", value: 16 / 9 },
+  { id: "a4-p", name: "A4 طولي", value: 210 / 297 },
+  { id: "a4-l", name: "A4 عرضي", value: 297 / 210 },
+] as const;
 
-export type SizePreset = {
-  id: string;
-  label: string;
-  w: number;
-  h: number;
-};
-
-/** المقاسات بالبكسل عند الدقة العادية (1x) */
-export const SIZE_PRESETS: SizePreset[] = [
-  { id: "square", label: "مربع 1:1", w: 1080, h: 1080 },
-  { id: "a4p", label: "A4 طولي", w: 794, h: 1123 },
-  { id: "a4l", label: "A4 عرضي", w: 1123, h: 794 },
-  { id: "wide", label: "عريض 16:9", w: 1280, h: 720 },
-  { id: "story", label: "ستوري 9:16", w: 1080, h: 1920 },
-  { id: "post", label: "منشور 4:5", w: 1080, h: 1350 },
-];
+export const QUALITIES = [
+  { id: "hd", name: "عالية — 2000 بكسل", width: 2000 },
+  { id: "print", name: "طباعة — 3000 بكسل", width: 3000 },
+  { id: "ultra", name: "فائقة — 4500 بكسل", width: 4500 },
+  { id: "max", name: "أقصى دقة — 6000 بكسل", width: 6000 },
+] as const;
 
 export type Fit = "cover" | "contain";
+export type Anchor = "center" | "top" | "bottom" | "start" | "end";
 
-export type Slot = {
+export type CollageItem = {
   id: string;
-  src: string;
-  img?: HTMLImageElement;
-  /** إزاحة الصورة داخل الخانة بالنسبة المئوية */
-  offsetX: number;
-  offsetY: number;
-  zoom: number;
+  name: string;
+  image: HTMLImageElement;
   fit: Fit;
+  anchor: Anchor;
+  zoom: number;
 };
 
 export type CollageOptions = {
   width: number;
-  height: number;
-  gap: number;
-  padding: number;
-  radius: number;
+  ratio: number;
+  template: CollageTemplate;
+  items: CollageItem[];
+  gap: number; // نسبة من العرض
+  padding: number; // نسبة من العرض
+  radius: number; // نسبة من العرض
   background: string;
-  borderWidth: number;
-  borderColor: string;
 };
 
 function roundRect(
@@ -137,75 +154,60 @@ function roundRect(
   ctx.closePath();
 }
 
-export function drawCollage(
-  canvas: HTMLCanvasElement,
-  template: CollageTemplate,
-  slots: (Slot | undefined)[],
-  options: CollageOptions,
-  scale = 1,
-) {
-  const W = Math.round(options.width * scale);
-  const H = Math.round(options.height * scale);
-  canvas.width = W;
-  canvas.height = H;
+export function renderCollage(canvas: HTMLCanvasElement, options: CollageOptions) {
+  const { width, ratio, template, items, gap, padding, radius, background } = options;
+  const height = Math.round(width / ratio);
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
-
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.fillStyle = options.background;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
 
-  const pad = options.padding * scale;
-  const gap = options.gap * scale;
-  const areaW = W - pad * 2;
-  const areaH = H - pad * 2;
+  const pad = padding * width;
+  const gapPx = gap * width;
+  const innerW = width - pad * 2;
+  const innerH = height - pad * 2;
 
-  template.cells.forEach((cell, i) => {
-    const cx = pad + cell.x * areaW + gap / 2;
-    const cy = pad + cell.y * areaH + gap / 2;
-    const cw = cell.w * areaW - gap;
-    const ch = cell.h * areaH - gap;
-    if (cw <= 0 || ch <= 0) return;
+  template.cells.forEach((cell, index) => {
+    const item = items[index];
+    const x = pad + cell.x * innerW + gapPx / 2;
+    const y = pad + cell.y * innerH + gapPx / 2;
+    const w = cell.w * innerW - gapPx;
+    const h = cell.h * innerH - gapPx;
+    if (w <= 0 || h <= 0) return;
 
-    const slot = slots[i];
     ctx.save();
-    roundRect(ctx, cx, cy, cw, ch, options.radius * scale);
+    roundRect(ctx, x, y, w, h, radius * width);
     ctx.clip();
 
-    if (slot?.img) {
-      const img = slot.img;
-      const iw = img.naturalWidth || img.width;
-      const ih = img.naturalHeight || img.height;
-      const base =
-        slot.fit === "cover" ? Math.max(cw / iw, ch / ih) : Math.min(cw / iw, ch / ih);
-      const drawW = iw * base * slot.zoom;
-      const drawH = ih * base * slot.zoom;
-      const dx = cx + (cw - drawW) / 2 + (slot.offsetX / 100) * cw;
-      const dy = cy + (ch - drawH) / 2 + (slot.offsetY / 100) * ch;
-      ctx.drawImage(img, dx, dy, drawW, drawH);
-    } else {
+    if (!item) {
       ctx.fillStyle = "rgba(0,0,0,0.06)";
-      ctx.fillRect(cx, cy, cw, ch);
-    }
-    ctx.restore();
-
-    if (options.borderWidth > 0) {
-      ctx.save();
-      roundRect(ctx, cx, cy, cw, ch, options.radius * scale);
-      ctx.lineWidth = options.borderWidth * scale;
-      ctx.strokeStyle = options.borderColor;
-      ctx.stroke();
+      ctx.fillRect(x, y, w, h);
       ctx.restore();
+      return;
     }
-  });
-}
 
-export function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("تعذر قراءة الصورة"));
-    img.src = src;
+    ctx.fillStyle = background;
+    ctx.fillRect(x, y, w, h);
+
+    const iw = item.image.naturalWidth || item.image.width;
+    const ih = item.image.naturalHeight || item.image.height;
+    const base = item.fit === "cover" ? Math.max(w / iw, h / ih) : Math.min(w / iw, h / ih);
+    const scale = base * item.zoom;
+    const dw = iw * scale;
+    const dh = ih * scale;
+
+    let dx = x + (w - dw) / 2;
+    let dy = y + (h - dh) / 2;
+    if (item.anchor === "top") dy = y;
+    if (item.anchor === "bottom") dy = y + h - dh;
+    if (item.anchor === "start") dx = x + w - dw; // يمين (بداية القراءة بالعربية)
+    if (item.anchor === "end") dx = x;
+
+    ctx.drawImage(item.image, dx, dy, dw, dh);
+    ctx.restore();
   });
 }
