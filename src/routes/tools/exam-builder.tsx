@@ -759,7 +759,7 @@ function ExamBuilder() {
                   {page.blocks.length === 0 && <Button variant="outline" className="m-auto" onClick={(event) => { event.stopPropagation(); addQuestion(page.id); }}><Plus className="size-4" /> إضافة أول سؤال</Button>}
                 </div>
 
-                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"} style={{ minHeight: footerSpace }}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
+                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"} style={{ minHeight: footerSpace }}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{footerImage && <div style={{ textAlign: footerImageAlign }}><img src={footerImage} alt="صورة التذييل" className="inline-block object-contain" style={{ height: footerImageSize }} /></div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
               </div>
             </div>
           ))}
