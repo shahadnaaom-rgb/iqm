@@ -146,6 +146,13 @@ function ExamBuilder() {
   const [marginY, setMarginY] = useState(40);
   const [headerSpace, setHeaderSpace] = useState(120);
   const [footerSpace, setFooterSpace] = useState(70);
+  const [headerImageRight, setHeaderImageRight] = useState<string | null>(null);
+  const [headerImageLeft, setHeaderImageLeft] = useState<string | null>(null);
+  const [headerImageSize, setHeaderImageSize] = useState(56);
+  const [logoSize, setLogoSize] = useState(56);
+  const [footerImage, setFooterImage] = useState<string | null>(null);
+  const [footerImageSize, setFooterImageSize] = useState(48);
+  const [footerImageAlign, setFooterImageAlign] = useState<TextAlign>("center");
   const [pages, setPages] = useState<ExamPage[]>([firstPage()]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragged, setDragged] = useState<DraggedBlock | null>(null);
