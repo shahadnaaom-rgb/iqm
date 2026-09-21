@@ -711,9 +711,17 @@ function ExamBuilder() {
                   {page.blocks.map((block) => {
                     const currentQuestionNumber = block.type === "question" ? ++questionNumber : null;
                     const selected = block.id === selectedId;
+                    const side = block.ca ?? "right";
+                    const flowStyle = block.w
+                      ? {
+                          width: `${block.w}%`,
+                          marginInlineStart: side === "right" ? 0 : "auto",
+                          marginInlineEnd: side === "left" ? 0 : "auto",
+                        }
+                      : undefined;
                     const freeStyle = freeMode
                       ? { right: `${block.x ?? 4}%`, top: `${block.y ?? 0}%`, width: `${block.w ?? 92}%`, cursor: "move" as const }
-                      : undefined;
+                      : flowStyle;
                     return <div
                       key={block.id}
                       ref={(element) => { blockRefs.current[block.id] = element; }}
