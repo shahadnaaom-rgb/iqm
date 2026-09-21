@@ -186,3 +186,95 @@
     8px -8px,
     -8px 0px;
 }
+
+/* ===== ورقة الأسئلة (منضّد الأسئلة) ===== */
+.exam-paper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 40px 44px;
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.exam-header {
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+.exam-header-lined {
+  border-bottom: 2px solid #111111;
+}
+
+.exam-blocks {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exam-blocks-columns {
+  display: block;
+  column-count: 2;
+  column-gap: 26px;
+}
+.exam-blocks-free {
+  display: block;
+  position: relative;
+}
+
+.exam-block {
+  position: relative;
+  padding: 8px 26px 8px 10px;
+  border: 1px dashed transparent;
+  border-radius: 8px;
+  line-height: 2;
+  break-inside: avoid;
+}
+.exam-blocks-columns .exam-block {
+  margin-bottom: 10px;
+}
+.exam-block:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+}
+.exam-block-selected {
+  border-color: var(--color-primary);
+  border-style: solid;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
+}
+.exam-block-drop {
+  border-color: var(--color-primary);
+  border-style: solid;
+  background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+}
+.exam-block-free {
+  position: absolute;
+}
+.exam-block-handle {
+  position: absolute;
+  top: 6px;
+  right: 4px;
+  opacity: 0;
+  cursor: grab;
+  color: var(--color-primary);
+  transition: opacity 0.15s ease;
+}
+.exam-block:hover .exam-block-handle,
+.exam-block-selected .exam-block-handle {
+  opacity: 1;
+}
+
+.exam-footer {
+  margin-top: 14px;
+  padding-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.exam-footer-lined {
+  border-top: 2px solid #111111;
+}

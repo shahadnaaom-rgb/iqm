@@ -48,6 +48,14 @@ const ANCHORS: { id: Anchor; name: string }[] = [
   { id: "end", name: "اليسار" },
 ];
 
+type ExportFormat = "png" | "jpeg" | "webp" | "pdf";
+const FORMATS: { id: ExportFormat; name: string }[] = [
+  { id: "png", name: "صورة PNG (أعلى جودة)" },
+  { id: "jpeg", name: "صورة JPG (حجم أصغر)" },
+  { id: "webp", name: "صورة WEBP" },
+  { id: "pdf", name: "ملف PDF" },
+];
+
 function PhotoCollage() {
   const [items, setItems] = useState<CollageItem[]>([]);
   const [templateId, setTemplateId] = useState("grid-2x2");
@@ -60,6 +68,8 @@ function PhotoCollage() {
   const [radius, setRadius] = useState(0.01);
   const [background, setBackground] = useState("#ffffff");
   const [busy, setBusy] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
+  const [jpegQuality, setJpegQuality] = useState(0.95);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const template = COLLAGE_TEMPLATES.find((t) => t.id === templateId) ?? COLLAGE_TEMPLATES[0]!;
@@ -117,7 +127,7 @@ function PhotoCollage() {
       return next;
     });
 
-  const exportImage = async (type: "image/png" | "image/jpeg") => {
+  const exportImage = async (format: ExportFormat = exportFormat) => {
     if (!items.length) {
       toast.error("أضف صورة واحدة على الأقل");
       return;
@@ -135,8 +145,22 @@ function PhotoCollage() {
         radius,
         background,
       });
-      const blob = await canvasToBlob(canvas, type, type === "image/jpeg" ? 0.96 : 1);
-      downloadBlob(blob, `تجميع-صور-${canvas.width}x${canvas.height}.${type === "image/png" ? "png" : "jpg"}`);
+      if (format === "pdf") {
+        const { jsPDF } = await import("jspdf");
+        const landscape = canvas.width >= canvas.height;
+        const pdf = new jsPDF({
+          unit: "px",
+          format: [canvas.width, canvas.height],
+          orientation: landscape ? "landscape" : "portrait",
+        });
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, canvas.width, canvas.height);
+        pdf.save(`تجميع-صور-${canvas.width}x${canvas.height}.pdf`);
+      } else {
+        const mime = `image/${format}` as "image/png" | "image/jpeg" | "image/webp";
+        const blob = await canvasToBlob(canvas, mime, format === "png" ? 1 : jpegQuality);
+        const extension = format === "jpeg" ? "jpg" : format;
+        downloadBlob(blob, `تجميع-صور-${canvas.width}x${canvas.height}.${extension}`);
+      }
       toast.success(`تم التصدير بدقة ${canvas.width}×${canvas.height}`);
     } catch {
       toast.error("تعذر تصدير الصورة");
@@ -166,13 +190,35 @@ function PhotoCollage() {
           <div className="surface overflow-hidden p-3">
             <canvas ref={canvasRef} className="mx-auto block h-auto w-full rounded-lg" />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => exportImage("image/png")} disabled={busy}>
-              <Download className="size-4" /> تصدير PNG
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={() => exportImage()} disabled={busy}>
+              <Download className="size-4" /> تصدير
             </Button>
-            <Button variant="outline" onClick={() => exportImage("image/jpeg")} disabled={busy}>
-              <Download className="size-4" /> تصدير JPG
-            </Button>
+            <select
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
+              className="h-10 rounded-xl border border-border bg-background px-3 text-sm"
+              aria-label="صيغة التصدير"
+            >
+              {FORMATS.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            {(exportFormat === "jpeg" || exportFormat === "webp") && (
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                جودة {Math.round(jpegQuality * 100)}%
+                <input
+                  type="range"
+                  min={0.5}
+                  max={1}
+                  step={0.01}
+                  value={jpegQuality}
+                  onChange={(e) => setJpegQuality(Number(e.target.value))}
+                />
+              </label>
+            )}
             {items.length > 0 && (
               <Button variant="ghost" onClick={() => setItems([])}>
                 تفريغ الصور
