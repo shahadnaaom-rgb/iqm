@@ -621,8 +621,8 @@ function ExamBuilder() {
                 <span>صفحة {pageIndex + 1}</span>
                 <div className="flex gap-1"><Button variant="ghost" size="sm" onClick={() => addQuestion(page.id)}><Plus className="size-4" /> سؤال</Button><Button variant="ghost" size="sm" onClick={() => removePage(page.id)}><Trash2 className="size-4" /> حذف الصفحة</Button></div>
               </div>
-              <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H }} onClick={() => setSelectedId(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
-                {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"}>
+              <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H, padding: `${marginY}px ${marginX}px` }} onClick={() => setSelectedId(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
+                {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"} style={{ minHeight: headerSpace }}>
                   <div className="mb-2 text-center text-base font-bold">بسم الله الرحمن الرحيم</div>
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm leading-7"><div>{ministry}</div><div>{directorate}</div><div>{school}</div></div>
