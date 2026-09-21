@@ -619,6 +619,7 @@ function ExamBuilder() {
               </div>
               <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H }} onClick={() => setSelectedId(null)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
                 {showHeader && <div className={headerLine ? "exam-header exam-header-lined" : "exam-header"}>
+                  <div className="mb-2 text-center text-base font-bold">بسم الله الرحمن الرحيم</div>
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm leading-7"><div>{ministry}</div><div>{directorate}</div><div>{school}</div></div>
                     <div className="flex-1 text-center">{logo && <img src={logo} alt="شعار" className="mx-auto mb-1.5 h-14 object-contain" />}<div className="text-xl font-bold">{examTitle}</div><div className="text-sm">{subject}</div></div>
