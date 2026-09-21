@@ -20,6 +20,8 @@ import {
   safeFileName,
   type Field,
 } from "../../lib/certificate";
+import { ExportQuality } from "../../components/ExportQuality";
+import { DEFAULT_SCALE, scaleOf, type ExportScaleId } from "../../lib/export";
 import { downloadBlob, pickDirectory, supportsDirectoryPicker, writeToDirectory } from "../../lib/save";
 import { readSheet } from "../../lib/sheet";
 
@@ -76,6 +78,7 @@ function BulkCertificates() {
   const [selected, setSelected] = useState<string | null>(null);
   const [preview, setPreview] = useState(0);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [quality, setQuality] = useState<ExportScaleId>(DEFAULT_SCALE);
 
   const rows = useMemo(
     () => (sheetRows.length ? sheetRows : parseManual(manual, mode)),
@@ -144,7 +147,7 @@ function BulkCertificates() {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]!;
-      drawCertificate(canvas, image, fields, row);
+      drawCertificate(canvas, image, fields, row, scaleOf(quality));
       const blob = await canvasToBlob(canvas, "image/png");
       const file = `${String(i + 1).padStart(3, "0")}-${safeFileName(row[nameKey] || `طالب-${i + 1}`)}.png`;
       if (dir) await writeToDirectory(dir, file, blob);
@@ -258,6 +261,8 @@ function BulkCertificates() {
                 </Button>
               </div>
             )}
+
+            <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
 
             {progress ? (
               <div className="grid gap-2">

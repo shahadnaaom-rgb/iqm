@@ -19,6 +19,8 @@ import {
   safeFileName,
   type Field,
 } from "../../lib/certificate";
+import { DEFAULT_SCALE, scaleOf, type ExportScaleId } from "../../lib/export";
+import { ExportQuality } from "../../components/ExportQuality";
 import { downloadBlob } from "../../lib/save";
 
 export const Route = createFileRoute("/tools/certificates")({
@@ -41,6 +43,7 @@ function SingleCertificate() {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [fields, setFields] = useState<Field[]>([newField()]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [quality, setQuality] = useState<ExportScaleId>(DEFAULT_SCALE);
 
   const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
 
@@ -60,7 +63,7 @@ function SingleCertificate() {
   const save = async (type: "image/png" | "image/jpeg") => {
     if (!image) return;
     const canvas = document.createElement("canvas");
-    drawCertificate(canvas, image, fields);
+    drawCertificate(canvas, image, fields, undefined, scaleOf(quality));
     const blob = await canvasToBlob(canvas, type);
     const first = fields[0] ? fieldValue(fields[0]) : "شهادة";
     downloadBlob(blob, `${safeFileName(first)}.${type === "image/png" ? "png" : "jpg"}`);
@@ -92,6 +95,7 @@ function SingleCertificate() {
               onSelect={setSelected}
               onMove={(id, x, y) => patch(id, { x, y })}
             />
+            <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => save("image/png")}>
                 <Download className="size-4" /> حفظ PNG
