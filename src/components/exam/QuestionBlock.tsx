@@ -24,8 +24,9 @@ export function QuestionBlock({
   onChange,
 }: Props) {
   const editable = useRef<HTMLDivElement | null>(null);
+  const dragging = useRef(false);
 
-  // تحديث محتوى النص من الخارج فقط (الرموز، إعادة التعيين) لتجنّب قطع الكتابة
+  // النص يُدار يدوياً (بدون dangerouslySetInnerHTML) حتى لا يقفز المؤشر أثناء الكتابة
   useEffect(() => {
     const el = editable.current;
     if (!el) return;
@@ -35,44 +36,48 @@ export function QuestionBlock({
   }, [block.html]);
 
   function startDrag(e: React.PointerEvent) {
-    if (block.locked) return;
+    if (block.locked || dragging.current) return;
     e.preventDefault();
     e.stopPropagation();
     onSelect();
-    const rect = getRect();
-    if (!rect) return;
-    const startX = e.clientX;
-    const startY = e.clientY;
     const originX = block.x;
     const originY = block.y;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    dragging.current = true;
 
     const move = (ev: PointerEvent) => {
+      const rect = getRect();
+      if (!rect) return;
       const dx = ((ev.clientX - startX) / rect.width) * 100;
       const dy = ((ev.clientY - startY) / rect.height) * 100;
       onChange({
-        x: clamp(originX + dx, -2, 100 - 5),
-        y: clamp(originY + dy, -2, 100 - 2),
+        x: clamp(originX - dx, -2, 95),
+        y: clamp(originY + dy, -2, 98),
       });
     };
     const up = () => {
+      dragging.current = false;
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
   }
 
   function startResize(e: React.PointerEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const rect = getRect();
-    if (!rect) return;
     const startX = e.clientX;
     const startY = e.clientY;
     const originW = block.w;
     const originH = block.h;
 
     const move = (ev: PointerEvent) => {
+      const rect = getRect();
+      if (!rect) return;
       const dx = ((startX - ev.clientX) / rect.width) * 100;
       const dy = ((ev.clientY - startY) / rect.height) * 100;
       const patch: Partial<Block> = { w: clamp(originW + dx, 8, 100) };
@@ -82,9 +87,11 @@ export function QuestionBlock({
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
   }
 
   const style: React.CSSProperties = {
