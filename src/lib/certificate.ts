@@ -54,9 +54,12 @@ export function drawCertificate(
   image: HTMLImageElement | ImageBitmap,
   fields: Field[],
   row?: Record<string, string>,
+  scale = 1,
 ) {
-  const w = "naturalWidth" in image ? image.naturalWidth : image.width;
-  const h = "naturalHeight" in image ? image.naturalHeight : image.height;
+  const baseW = "naturalWidth" in image ? image.naturalWidth : image.width;
+  const baseH = "naturalHeight" in image ? image.naturalHeight : image.height;
+  const w = Math.round(baseW * scale);
+  const h = Math.round(baseH * scale);
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");

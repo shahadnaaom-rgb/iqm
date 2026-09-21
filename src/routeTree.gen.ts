@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ArticlesIndexRouteImport } from './routes/articles/index'
 import { Route as ArticlesSlugRouteImport } from './routes/articles/$slug'
 import { Route as ToolsCertificatesRouteImport } from './routes/tools/certificates'
+import { Route as ToolsCollageRouteImport } from './routes/tools/collage'
 import { Route as ToolsExamBuilderRouteImport } from './routes/tools/exam-builder'
 import { Route as ToolsExcelCertificatesRouteImport } from './routes/tools/excel-certificates'
 import { Route as ToolsFontsRouteImport } from './routes/tools/fonts'
@@ -51,6 +52,11 @@ const ArticlesSlugRoute = ArticlesSlugRouteImport.update({
 const ToolsCertificatesRoute = ToolsCertificatesRouteImport.update({
   id: '/tools/certificates',
   path: '/tools/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsCollageRoute = ToolsCollageRouteImport.update({
+  id: '/tools/collage',
+  path: '/tools/collage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsExamBuilderRoute = ToolsExamBuilderRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/collage': typeof ToolsCollageRoute
   '/tools/exam-builder': typeof ToolsExamBuilderRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/collage': typeof ToolsCollageRoute
   '/tools/exam-builder': typeof ToolsExamBuilderRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
+  '/tools/collage': typeof ToolsCollageRoute
   '/tools/exam-builder': typeof ToolsExamBuilderRoute
   '/tools/excel-certificates': typeof ToolsExcelCertificatesRoute
   '/tools/fonts': typeof ToolsFontsRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/articles/$slug'
     | '/tools/certificates'
+    | '/tools/collage'
     | '/tools/exam-builder'
     | '/tools/excel-certificates'
     | '/tools/fonts'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/articles/$slug'
     | '/tools/certificates'
+    | '/tools/collage'
     | '/tools/exam-builder'
     | '/tools/excel-certificates'
     | '/tools/fonts'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/articles/$slug'
     | '/tools/certificates'
+    | '/tools/collage'
     | '/tools/exam-builder'
     | '/tools/excel-certificates'
     | '/tools/fonts'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ArticlesSlugRoute: typeof ArticlesSlugRoute
   ToolsCertificatesRoute: typeof ToolsCertificatesRoute
+  ToolsCollageRoute: typeof ToolsCollageRoute
   ToolsExamBuilderRoute: typeof ToolsExamBuilderRoute
   ToolsExcelCertificatesRoute: typeof ToolsExcelCertificatesRoute
   ToolsFontsRoute: typeof ToolsFontsRoute
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/certificates'
       fullPath: '/tools/certificates'
       preLoaderRoute: typeof ToolsCertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/collage': {
+      id: '/tools/collage'
+      path: '/tools/collage'
+      fullPath: '/tools/collage'
+      preLoaderRoute: typeof ToolsCollageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/exam-builder': {
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ArticlesSlugRoute: ArticlesSlugRoute,
   ToolsCertificatesRoute: ToolsCertificatesRoute,
+  ToolsCollageRoute: ToolsCollageRoute,
   ToolsExamBuilderRoute: ToolsExamBuilderRoute,
   ToolsExcelCertificatesRoute: ToolsExcelCertificatesRoute,
   ToolsFontsRoute: ToolsFontsRoute,
