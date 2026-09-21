@@ -63,7 +63,7 @@ function SingleCertificate() {
   const save = async (type: "image/png" | "image/jpeg") => {
     if (!image) return;
     const canvas = document.createElement("canvas");
-    drawCertificate(canvas, image, fields);
+    drawCertificate(canvas, image, fields, undefined, scaleOf(quality));
     const blob = await canvasToBlob(canvas, type);
     const first = fields[0] ? fieldValue(fields[0]) : "شهادة";
     downloadBlob(blob, `${safeFileName(first)}.${type === "image/png" ? "png" : "jpg"}`);
@@ -95,6 +95,7 @@ function SingleCertificate() {
               onSelect={setSelected}
               onMove={(id, x, y) => patch(id, { x, y })}
             />
+            <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => save("image/png")}>
                 <Download className="size-4" /> حفظ PNG
