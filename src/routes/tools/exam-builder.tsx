@@ -67,7 +67,8 @@ const A4_W = 794;
 const A4_H = 1123;
 
 type TextAlign = "right" | "center" | "left";
-type FreePos = { x?: number; y?: number; w?: number };
+/** x/y/w للتحريك الحر، و ca = محاذاة الكتلة نفسها بالنسبة للورقة */
+type FreePos = { x?: number; y?: number; w?: number; ca?: TextAlign };
 type QuestionBlock = FreePos & {
   id: string;
   type: "question";
