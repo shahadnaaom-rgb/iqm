@@ -635,8 +635,16 @@ function ExamBuilder() {
               <Field label="الصف" value={grade} onChange={setGrade} />
               <Field label="الزمن" value={duration} onChange={setDuration} />
               <Field label="التاريخ" value={dateText} onChange={setDateText} />
-              <div className="grid gap-1.5"><Label className="text-xs">شعار اختياري</Label><Input type="file" accept="image/*" onChange={(event) => onLogo(event.target.files?.[0])} /></div>
-              {logo && <Button variant="ghost" size="sm" onClick={() => setLogo(null)}><Trash2 className="size-4" /> إزالة الشعار</Button>}
+              <div className="grid gap-1.5"><Label className="text-xs">شعار وسط الرأس</Label><Input type="file" accept="image/*" onChange={(event) => onLogo(event.target.files?.[0])} /></div>
+              {logo && <>
+                <div className="grid gap-1.5"><Label htmlFor="logo-size" className="text-xs">حجم الشعار: {logoSize}px</Label><input id="logo-size" className="accent-primary" type="range" min={24} max={140} value={logoSize} onChange={(event) => setLogoSize(Number(event.target.value))} /></div>
+                <Button variant="ghost" size="sm" onClick={() => setLogo(null)}><Trash2 className="size-4" /> إزالة الشعار</Button>
+              </>}
+              <div className="grid gap-1.5"><Label className="text-xs">صورة يمين الرأس</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setHeaderImageRight)} /></div>
+              {headerImageRight && <Button variant="ghost" size="sm" onClick={() => setHeaderImageRight(null)}><Trash2 className="size-4" /> إزالة صورة اليمين</Button>}
+              <div className="grid gap-1.5"><Label className="text-xs">صورة يسار الرأس</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setHeaderImageLeft)} /></div>
+              {headerImageLeft && <Button variant="ghost" size="sm" onClick={() => setHeaderImageLeft(null)}><Trash2 className="size-4" /> إزالة صورة اليسار</Button>}
+              {(headerImageRight || headerImageLeft) && <div className="grid gap-1.5"><Label htmlFor="header-image-size" className="text-xs">حجم صور الرأس: {headerImageSize}px</Label><input id="header-image-size" className="accent-primary" type="range" min={20} max={140} value={headerImageSize} onChange={(event) => setHeaderImageSize(Number(event.target.value))} /></div>}
               <label className="flex items-center justify-between text-xs">خط فاصل أسفل الرأس<Switch checked={headerLine} onCheckedChange={setHeaderLine} /></label>
             </div>}
           </div>
@@ -646,6 +654,20 @@ function ExamBuilder() {
             {showFooter && <div className="grid gap-3">
               <Field label="سطر الختام" value={footerNote} onChange={setFooterNote} />
               <div className="grid gap-1.5"><Label className="text-xs">نص التذييل</Label><Textarea value={footerText} onChange={(event) => setFooterText(event.target.value)} rows={2} /></div>
+              <div className="grid gap-1.5"><Label className="text-xs">صورة أو ختم في التذييل</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setFooterImage)} /></div>
+              {footerImage && <>
+                <div className="grid gap-1.5"><Label htmlFor="footer-image-size" className="text-xs">حجم الصورة: {footerImageSize}px</Label><input id="footer-image-size" className="accent-primary" type="range" min={20} max={160} value={footerImageSize} onChange={(event) => setFooterImageSize(Number(event.target.value))} /></div>
+                <div className="grid gap-1.5">
+                  <Label className="text-xs">محاذاة الصورة</Label>
+                  <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
+                    {(["right", "center", "left"] as TextAlign[]).map((side) => {
+                      const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
+                      return <Button key={side} variant={footerImageAlign === side ? "default" : "ghost"} size="sm" onClick={() => setFooterImageAlign(side)} aria-label={`محاذاة صورة التذييل ${side}`}><Icon className="size-4" /></Button>;
+                    })}
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setFooterImage(null)}><Trash2 className="size-4" /> إزالة الصورة</Button>
+              </>}
               <label className="flex items-center justify-between text-xs">إظهار رقم الصفحة<Switch checked={showPageNumber} onCheckedChange={setShowPageNumber} /></label>
               <label className="flex items-center justify-between text-xs">خط فاصل أعلى التذييل<Switch checked={footerLine} onCheckedChange={setFooterLine} /></label>
             </div>}
