@@ -552,13 +552,28 @@ function ExamBuilder() {
                   </div>
                 )}
                 <div className="grid gap-1.5">
-                  <Label>المحاذاة</Label>
+                  <Label>محاذاة النص داخل الكتلة</Label>
                   <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
                     {(["right", "center", "left"] as TextAlign[]).map((align) => {
                       const Icon = align === "right" ? AlignRight : align === "center" ? AlignCenter : AlignLeft;
                       return <Button key={align} variant={selectedBlock.align === align ? "default" : "ghost"} size="sm" onClick={() => patchBlock(selectedBlock.id, { align })} aria-label={`محاذاة ${align}`}><Icon className="size-4" /></Button>;
                     })}
                   </div>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>محاذاة الكتلة بالنسبة للورقة</Label>
+                  <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
+                    {(["right", "center", "left"] as TextAlign[]).map((side) => {
+                      const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
+                      const active = (selectedBlock.ca ?? "right") === side;
+                      return <Button key={side} variant={active ? "default" : "ghost"} size="sm" onClick={() => alignBlockToPage(selectedBlock, side)} aria-label={`محاذاة الكتلة ${side}`}><Icon className="size-4" /></Button>;
+                    })}
+                  </div>
+                  <p className="text-xs leading-6 text-muted-foreground">مستقلة عن محاذاة النص؛ اضبط عرض الكتلة لتظهر النتيجة.</p>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="block-width">عرض الكتلة: {Math.round(selectedBlock.w ?? (freeMode ? 92 : 100))}%</Label>
+                  <input id="block-width" className="accent-primary" type="range" min={15} max={100} value={Math.round(selectedBlock.w ?? (freeMode ? 92 : 100))} onChange={(event) => patchBlock(selectedBlock.id, { w: Number(event.target.value) })} />
                 </div>
               </>
             )}
