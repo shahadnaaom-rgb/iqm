@@ -19,6 +19,8 @@ import {
   safeFileName,
   type Field,
 } from "../../lib/certificate";
+import { DEFAULT_SCALE, scaleOf, type ExportScaleId } from "../../lib/export";
+import { ExportQuality } from "../../components/ExportQuality";
 import { downloadBlob } from "../../lib/save";
 
 export const Route = createFileRoute("/tools/certificates")({
@@ -41,6 +43,7 @@ function SingleCertificate() {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [fields, setFields] = useState<Field[]>([newField()]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [quality, setQuality] = useState<ExportScaleId>(DEFAULT_SCALE);
 
   const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
 
