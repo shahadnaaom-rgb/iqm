@@ -141,6 +141,10 @@ function ExamBuilder() {
   const [footerLine, setFooterLine] = useState(true);
   const [columns, setColumns] = useState<1 | 2>(1);
   const [freeMode, setFreeMode] = useState(false);
+  const [marginX, setMarginX] = useState(44);
+  const [marginY, setMarginY] = useState(40);
+  const [headerSpace, setHeaderSpace] = useState(120);
+  const [footerSpace, setFooterSpace] = useState(70);
   const [pages, setPages] = useState<ExamPage[]>([firstPage()]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragged, setDragged] = useState<DraggedBlock | null>(null);
