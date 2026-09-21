@@ -579,6 +579,27 @@ function ExamBuilder() {
           </div>
 
           <div className="surface grid gap-3 p-4">
+            <h2 className="font-display font-bold">مساحات الصفحة</h2>
+            <div className="grid gap-1.5">
+              <Label htmlFor="margin-x">هامش الجانبين: {marginX}px</Label>
+              <input id="margin-x" className="accent-primary" type="range" min={10} max={120} value={marginX} onChange={(event) => setMarginX(Number(event.target.value))} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="margin-y">هامش الأعلى والأسفل: {marginY}px</Label>
+              <input id="margin-y" className="accent-primary" type="range" min={10} max={120} value={marginY} onChange={(event) => setMarginY(Number(event.target.value))} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="header-space">مساحة الرأس: {headerSpace}px</Label>
+              <input id="header-space" className="accent-primary" type="range" min={0} max={320} step={5} value={headerSpace} onChange={(event) => setHeaderSpace(Number(event.target.value))} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="footer-space">مساحة التذييل: {footerSpace}px</Label>
+              <input id="footer-space" className="accent-primary" type="range" min={0} max={250} step={5} value={footerSpace} onChange={(event) => setFooterSpace(Number(event.target.value))} />
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => { setMarginX(44); setMarginY(40); setHeaderSpace(120); setFooterSpace(70); }}>إرجاع القياسات الافتراضية</Button>
+          </div>
+
+          <div className="surface grid gap-3 p-4">
             <div className="flex items-center justify-between"><h2 className="font-display font-bold">رأس الورقة</h2><Switch checked={showHeader} onCheckedChange={setShowHeader} /></div>
             {showHeader && <div className="grid gap-3">
               <Field label="الوزارة" value={ministry} onChange={setMinistry} />
