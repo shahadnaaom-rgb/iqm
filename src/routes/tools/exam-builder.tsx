@@ -107,7 +107,7 @@ type HeaderTextItem = {
   x: number;
   y: number;
   w: number;
-  ca?: TextAlign;
+  ca?: TextAlign | undefined;
   fontSize: number;
   align: TextAlign;
   bold?: boolean;
@@ -121,7 +121,7 @@ type HeaderImageItem = {
   x: number;
   y: number;
   w: number;
-  ca?: TextAlign;
+  ca?: TextAlign | undefined;
 };
 type HeaderItem = HeaderTextItem | HeaderImageItem;
 type HeaderDrag = { id: string; pageId: string; startX: number; startY: number; originX: number; originY: number };
