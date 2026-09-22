@@ -107,6 +107,7 @@ type HeaderTextItem = {
   x: number;
   y: number;
   w: number;
+  ca?: TextAlign | undefined;
   fontSize: number;
   align: TextAlign;
   bold?: boolean;
@@ -120,6 +121,7 @@ type HeaderImageItem = {
   x: number;
   y: number;
   w: number;
+  ca?: TextAlign | undefined;
 };
 type HeaderItem = HeaderTextItem | HeaderImageItem;
 type HeaderDrag = { id: string; pageId: string; startX: number; startY: number; originX: number; originY: number };
@@ -218,6 +220,12 @@ function ExamBuilder() {
 
   const patchHeaderText = (id: HeaderTextKey, text: string) => patchHeaderItem(id, { text } as Partial<HeaderTextItem>);
 
+  /** محاذاة عنصر الرأس نفسه بالنسبة للورقة، مستقلة عن محاذاة النص داخله */
+  const alignHeaderItemToPage = (item: HeaderItem, side: TextAlign) => {
+    const x = side === "right" ? 100 - item.w : side === "center" ? (100 - item.w) / 2 : 0;
+    patchHeaderItem(item.id, { ca: side, x });
+  };
+
   const headerText = (id: HeaderTextKey) => {
     const item = headerItems.find((candidate) => candidate.id === id);
     return item?.type === "text" ? item.text : "";
@@ -270,7 +278,7 @@ function ExamBuilder() {
     if (!item || box.width === 0 || box.height === 0) return;
     const x = Math.min(100 - item.w, Math.max(0, drag.originX + ((event.clientX - drag.startX) / box.width) * 100));
     const y = Math.min(92, Math.max(0, drag.originY + ((event.clientY - drag.startY) / box.height) * 100));
-    patchHeaderItem(item.id, { x, y });
+    patchHeaderItem(item.id, { x, y, ca: undefined });
   };
 
   const endHeaderDrag = () => { headerDrag.current = null; };
@@ -747,9 +755,21 @@ function ExamBuilder() {
                    {selectedHeaderItem.type === "image" && <Button variant="ghost" size="icon" onClick={() => { setHeaderItems((current) => current.filter((item) => item.id !== selectedHeaderItem.id)); setSelectedHeaderId(null); }} aria-label="حذف صورة الرأس" title="حذف"><Trash2 className="size-4" /></Button>}
                  </div>
                  <div className="grid gap-1.5"><Label htmlFor="header-item-width" className="text-xs">العرض: {Math.round(selectedHeaderItem.w)}%</Label><input id="header-item-width" className="accent-primary" type="range" min={8} max={60} value={selectedHeaderItem.w} onChange={(event) => patchHeaderItem(selectedHeaderItem.id, { w: Number(event.target.value) })} /></div>
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs">محاذاة العنصر بالنسبة للورقة</Label>
+                    <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
+                      {(["right", "center", "left"] as TextAlign[]).map((side) => {
+                        const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
+                        return <Button key={side} variant={selectedHeaderItem.ca === side ? "default" : "ghost"} size="sm" onClick={() => alignHeaderItemToPage(selectedHeaderItem, side)} aria-label={`محاذاة عنصر الرأس ${side}`}><Icon className="size-4" /></Button>;
+                      })}
+                    </div>
+                  </div>
                  {selectedHeaderItem.type === "text" && <>
                    <div className="grid gap-1.5"><Label htmlFor="header-text-size" className="text-xs">حجم النص: {selectedHeaderItem.fontSize}px</Label><input id="header-text-size" className="accent-primary" type="range" min={10} max={40} value={selectedHeaderItem.fontSize} onChange={(event) => patchHeaderItem(selectedHeaderItem.id, { fontSize: Number(event.target.value) })} /></div>
-                   <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedHeaderItem.align === side ? "default" : "ghost"} size="sm" onClick={() => patchHeaderItem(selectedHeaderItem.id, { align: side })} aria-label={`محاذاة نص الرأس ${side}`}><Icon className="size-4" /></Button>; })}</div>
+                    <div className="grid gap-1.5">
+                      <Label className="text-xs">محاذاة النص داخل العنصر</Label>
+                      <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedHeaderItem.align === side ? "default" : "ghost"} size="sm" onClick={() => patchHeaderItem(selectedHeaderItem.id, { align: side })} aria-label={`محاذاة نص الرأس ${side}`}><Icon className="size-4" /></Button>; })}</div>
+                    </div>
                  </>}
                </div>}
               <label className="flex items-center justify-between text-xs">خط فاصل أسفل الرأس<Switch checked={headerLine} onCheckedChange={setHeaderLine} /></label>
