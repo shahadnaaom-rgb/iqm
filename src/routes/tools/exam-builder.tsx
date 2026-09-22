@@ -209,7 +209,8 @@ function ExamBuilder() {
 
   const selectedBlock = pages.flatMap((page) => page.blocks).find((block) => block.id === selectedId);
   const selectedHeaderItem = headerItems.find((item) => item.id === selectedHeaderId);
-  const examTitle = headerItems.find((item) => item.id === "examTitle" && item.type === "text")?.text || "أسئلة";
+  const examTitleItem = headerItems.find((item) => item.id === "examTitle");
+  const examTitle = examTitleItem?.type === "text" ? examTitleItem.text || "أسئلة" : "أسئلة";
 
   const patchHeaderItem = (id: string, patch: Partial<HeaderItem>) => {
     setHeaderItems((current) => current.map((item) => item.id === id ? ({ ...item, ...patch } as HeaderItem) : item));
