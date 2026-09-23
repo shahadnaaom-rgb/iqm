@@ -14,6 +14,7 @@ const NAV = [
   { to: "/tools/collage", label: "تجميع الصور" },
   { to: "/tools/certificates", label: "الشهادات" },
   { to: "/tools/excel-certificates", label: "شهادات جماعية" },
+  { to: "/tools/pdf", label: "أدوات PDF" },
   { to: "/tools/fonts", label: "الخطوط" },
   { to: "/articles", label: "المقالات" },
   { to: "/settings", label: "الإعدادات" },
