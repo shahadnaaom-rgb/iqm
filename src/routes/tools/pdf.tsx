@@ -113,7 +113,7 @@ function PdfTools() {
       const j = i + dir;
       if (j < 0 || j >= prev.length) return prev;
       const next = [...prev];
-      [next[i], next[j]] = [next[j], next[i]];
+      [next[i], next[j]] = [next[j]!, next[i]!];
       return next;
     });
 
@@ -124,7 +124,7 @@ function PdfTools() {
       const to = prev.findIndex((p) => p.id === targetId);
       const next = [...prev];
       const [m] = next.splice(from, 1);
-      next.splice(to, 0, m);
+      next.splice(to, 0, m!);
       return next;
     });
     setDragId(null);

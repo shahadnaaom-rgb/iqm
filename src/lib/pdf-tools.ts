@@ -81,12 +81,12 @@ export async function buildPdf(sources: ArrayBuffer[], pages: PageRef[]): Promis
   for (const p of pages) {
     let d = loaded.get(p.src);
     if (!d) {
-      d = await PDFDocument.load(sources[p.src], { ignoreEncryption: true });
+      d = await PDFDocument.load(sources[p.src]!, { ignoreEncryption: true });
       loaded.set(p.src, d);
     }
     const [copied] = await out.copyPages(d, [p.index]);
-    if (p.rotation) copied.setRotation(degrees((copied.getRotation().angle + p.rotation) % 360));
-    out.addPage(copied);
+    if (p.rotation) copied!.setRotation(degrees((copied!.getRotation().angle + p.rotation) % 360));
+    out.addPage(copied!);
   }
   const bytes = await out.save();
   return new Blob([bytes as BlobPart], { type: "application/pdf" });
