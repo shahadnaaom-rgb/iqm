@@ -156,7 +156,7 @@ function PdfTools() {
       for (let k = 0; k < items.length; k++) {
         setBusy(`جارٍ تحويل الصفحة ${k + 1} من ${items.length}…`);
         const it = items[k];
-        const c = await renderPage(docs.current[it.src], it.index, scale, it.rotation);
+        const c = await renderPage(docs.current[it!.src]!, it!.index, scale, it!.rotation);
         const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), "image/png"));
         const file = `${name || "page"}-${String(k + 1).padStart(2, "0")}.png`;
         if (dir) await writeToDirectory(dir, file, blob);
@@ -347,7 +347,7 @@ function PdfTools() {
       {preview && (
         <PreviewModal
           item={preview}
-          doc={docs.current[preview.src]}
+          doc={docs.current[preview.src]!}
           onClose={() => setPreview(null)}
         />
       )}
