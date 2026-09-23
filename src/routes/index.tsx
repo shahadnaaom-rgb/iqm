@@ -74,7 +74,7 @@ const TOOLS = [
     desc: "اجمع عدة صور في قالب واحد وصدّرها بدقة عالية.",
   },
   { to: "/tools/fonts", icon: PenTool, title: "الخطوط", desc: "أضف خطوطك الخاصة." },
-  { to: "/tools/pdf", icon: FileText, title: "أدوات PDF", desc: "قريباً." },
+  { to: "/tools/pdf", icon: FileText, title: "أدوات PDF", desc: "تحرير الصفحات وتحويل الصور ↔ PDF." },
   { to: "/articles", icon: Newspaper, title: "المقالات", desc: "مقالات وإرشادات للمدرسين." },
   { to: "/settings", icon: Settings, title: "الإعدادات", desc: "الوضع الليلي وتنظيف البيانات." },
 ] as const;
