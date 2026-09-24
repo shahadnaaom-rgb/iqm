@@ -75,7 +75,6 @@ type QuestionBlock = FreePos & {
   html: string;
   fontFamily: string;
   fontSize: number;
-  fontFamily?: string;
   align: TextAlign;
   color?: string;
 };
@@ -101,6 +100,7 @@ type HeaderTextItem = {
   w: number;
   ca?: TextAlign | undefined;
   fontSize: number;
+  fontFamily?: string;
   align: TextAlign;
   bold?: boolean;
   color?: string;
