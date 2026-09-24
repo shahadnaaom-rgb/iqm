@@ -75,6 +75,7 @@ type QuestionBlock = FreePos & {
   html: string;
   fontFamily: string;
   fontSize: number;
+  fontFamily?: string;
   align: TextAlign;
   color?: string;
 };
@@ -468,6 +469,13 @@ function ExamBuilder() {
     if ((!selectedBlock || selectedBlock.type !== "question") && !textItem) return;
     const editor = selectedBlock?.type === "question" ? editorRefs.current[selectedBlock.id] : textItem ? zoneEditorRefs.current[textItem.id] : null;
     editor?.focus();
+    const selection = window.getSelection();
+    if (editor && selection?.isCollapsed) {
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
     document.execCommand(command);
     if (selectedBlock?.type === "question" && editor) patchBlock(selectedBlock.id, { html: editor.innerHTML });
     if (textItem && selectedZone && editor) patchZoneItem(selectedZone, textItem.id, { text: editor.innerHTML });
@@ -494,7 +502,7 @@ function ExamBuilder() {
     return <div
       key={item.id}
       className={`absolute cursor-move overflow-hidden border border-transparent p-1 ${selected ? "border-primary bg-primary/5" : "hover:border-border"}`}
-      style={{ left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, textAlign: item.type === "text" ? item.align : "center", fontSize: item.type === "text" ? item.fontSize : undefined, fontWeight: item.type === "text" && item.bold ? 700 : undefined, color: item.type === "text" ? item.color : undefined, touchAction: "none" }}
+      style={{ left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, textAlign: item.type === "text" ? item.align : "center", fontFamily: item.type === "text" ? item.fontFamily : undefined, fontSize: item.type === "text" ? item.fontSize : undefined, fontWeight: item.type === "text" && item.bold ? 700 : undefined, color: item.type === "text" ? item.color : undefined, touchAction: "none" }}
       onPointerDown={(event) => onZonePointerDown(event, pageId, zone, item)}
       onClick={(event) => event.stopPropagation()}
     >
@@ -502,7 +510,7 @@ function ExamBuilder() {
         ref={(element) => { zoneEditorRefs.current[item.id] = element; if (element && element !== document.activeElement && element.innerHTML !== item.text) element.innerHTML = item.text; }}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-5 cursor-text whitespace-pre-line outline-none"
+        className="min-h-5 cursor-text whitespace-pre-line leading-normal outline-none"
         onPointerDown={(event) => event.stopPropagation()}
         onFocus={() => { setSelectedId(null); if (zone === "header") { setSelectedHeaderId(item.id); setSelectedFooterId(null); } else { setSelectedFooterId(item.id); setSelectedHeaderId(null); } }}
         onInput={(event) => patchZoneItem(zone, item.id, { text: event.currentTarget.innerHTML })}
@@ -697,6 +705,7 @@ function ExamBuilder() {
               <>
                 <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm"><span>{selectedZone === "header" ? "عنصر الرأس" : "عنصر التذييل"}: {selectedZoneItem.label}</span><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => duplicateZoneItem(selectedZone, selectedZoneItem)} aria-label="تكرار العنصر"><Copy className="size-4" /></Button><Button variant="ghost" size="icon" onClick={() => removeZoneItem(selectedZone, selectedZoneItem.id)} aria-label="حذف العنصر"><Trash2 className="size-4" /></Button></div></div>
                 <div className="grid gap-1.5"><Label htmlFor="zone-item-width">عرض المربع: {Math.round(selectedZoneItem.w)}%</Label><input id="zone-item-width" className="accent-primary" type="range" min={8} max={100} value={selectedZoneItem.w} onChange={(event) => patchZoneItem(selectedZone, selectedZoneItem.id, { w: Number(event.target.value) })} /></div>
+                {selectedZoneItem.type === "text" && <div className="grid gap-1.5"><Label>نوع الخط</Label><Select value={selectedZoneItem.fontFamily ?? "Cairo"} onValueChange={(fontFamily) => patchZoneItem(selectedZone, selectedZoneItem.id, { fontFamily })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{families.map((font) => <SelectItem key={font.family} value={font.family}><span style={{ fontFamily: font.family }}>{font.label}</span></SelectItem>)}</SelectContent></Select></div>}
                 {selectedZoneItem.type === "text" && <div className="grid gap-1.5"><Label htmlFor="zone-text-size">حجم النص: {selectedZoneItem.fontSize}px</Label><input id="zone-text-size" className="accent-primary" type="range" min={10} max={40} value={selectedZoneItem.fontSize} onChange={(event) => patchZoneItem(selectedZone, selectedZoneItem.id, { fontSize: Number(event.target.value) })} /></div>}
                 {selectedZoneItem.type === "text" && <div className="grid gap-1.5"><Label>محاذاة النص داخل المربع</Label><div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedZoneItem.align === side ? "default" : "ghost"} size="sm" onClick={() => patchZoneItem(selectedZone, selectedZoneItem.id, { align: side })} aria-label={`محاذاة النص ${side}`}><Icon className="size-4" /></Button>; })}</div></div>}
                 <div className="grid gap-1.5"><Label>محاذاة المربع بالنسبة للورقة</Label><div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedZoneItem.ca === side ? "default" : "ghost"} size="sm" onClick={() => alignHeaderItemToPage(selectedZoneItem, side)} aria-label={`محاذاة المربع ${side}`}><Icon className="size-4" /></Button>; })}</div></div>
