@@ -77,6 +77,7 @@ type QuestionBlock = FreePos & {
   fontFamily: string;
   fontSize: number;
   align: TextAlign;
+  color?: string;
 };
 type ImageBlock = FreePos & {
   id: string;
@@ -486,8 +487,29 @@ function ExamBuilder() {
       return;
     }
     if (textItem && selectedZone) patchZoneItem(selectedZone, textItem.id, { color });
-    else editor.style.color = color;
+    else if (selectedBlock?.type === "question") patchBlock(selectedBlock.id, { color });
   };
+
+  const renderZoneItems = (zone: PageZone, items: HeaderItem[], pageId: string) => items.map((item) => {
+    const selected = zone === "header" ? selectedHeaderId === item.id : selectedFooterId === item.id;
+    return <div
+      key={item.id}
+      className={`absolute cursor-move overflow-hidden border border-transparent p-1 ${selected ? "border-primary bg-primary/5" : "hover:border-border"}`}
+      style={{ left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, textAlign: item.type === "text" ? item.align : "center", fontSize: item.type === "text" ? item.fontSize : undefined, fontWeight: item.type === "text" && item.bold ? 700 : undefined, color: item.type === "text" ? item.color : undefined, touchAction: "none" }}
+      onPointerDown={(event) => onZonePointerDown(event, pageId, zone, item)}
+      onClick={(event) => event.stopPropagation()}
+    >
+      {item.type === "text" ? <div
+        ref={(element) => { zoneEditorRefs.current[item.id] = element; if (element && element !== document.activeElement && element.innerHTML !== item.text) element.innerHTML = item.text; }}
+        contentEditable
+        suppressContentEditableWarning
+        className="min-h-5 cursor-text whitespace-pre-line outline-none"
+        onPointerDown={(event) => event.stopPropagation()}
+        onFocus={() => { setSelectedId(null); if (zone === "header") { setSelectedHeaderId(item.id); setSelectedFooterId(null); } else { setSelectedFooterId(item.id); setSelectedHeaderId(null); } }}
+        onInput={(event) => patchZoneItem(zone, item.id, { text: event.currentTarget.innerHTML })}
+      /> : <img src={item.src} alt={item.alt} className="pointer-events-none block h-auto w-full object-contain" />}
+    </div>;
+  });
 
   const insertSymbol = (symbol: string) => {
     if (!selectedBlock || selectedBlock.type !== "question") {
