@@ -91,3 +91,26 @@ export async function buildPdf(sources: ArrayBuffer[], pages: PageRef[]): Promis
   const bytes = await out.save();
   return new Blob([bytes as BlobPart], { type: "application/pdf" });
 }
+
+/** ضغط PDF: إعادة رسم كل صفحة كصورة JPEG بدقة وجودة محددتين ثم بناء ملف جديد عبر pdf-lib */
+export async function compressPdf(
+  bytes: ArrayBuffer,
+  opts: { scale: number; quality: number },
+  onProgress?: (i: number, n: number) => void,
+): Promise<Blob> {
+  const { PDFDocument } = await import("pdf-lib");
+  const src = await loadPdf(bytes);
+  const out = await PDFDocument.create();
+  for (let i = 0; i < src.numPages; i++) {
+    onProgress?.(i + 1, src.numPages);
+    const page = await src.getPage(i + 1);
+    const base = page.getViewport({ scale: 1 });
+    const c = await renderPage(src, i, opts.scale);
+    const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), "image/jpeg", opts.quality));
+    const img = await out.embedJpg(await blob.arrayBuffer());
+    const p = out.addPage([base.width, base.height]);
+    p.drawImage(img, { x: 0, y: 0, width: base.width, height: base.height });
+  }
+  const res = await out.save({ useObjectStreams: true });
+  return new Blob([res as BlobPart], { type: "application/pdf" });
+}
