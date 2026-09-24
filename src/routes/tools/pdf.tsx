@@ -20,7 +20,7 @@ import { PageHeader } from "../../components/PrivacyNote";
 import { UploadZone } from "../../components/UploadZone";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
-import { buildPdf, imageToPdfBytes, loadPdf, renderPage } from "../../lib/pdf-tools";
+import { buildPdf, compressPdf, imageToPdfBytes, loadPdf, renderPage } from "../../lib/pdf-tools";
 import { downloadBlob, pickDirectory, supportsDirectoryPicker, writeToDirectory } from "../../lib/save";
 
 export const Route = createFileRoute("/tools/pdf")({
@@ -40,13 +40,14 @@ export const Route = createFileRoute("/tools/pdf")({
   component: PdfTools,
 });
 
-type Mode = "edit" | "img2pdf" | "pdf2img";
+type Mode = "edit" | "img2pdf" | "pdf2img" | "compress";
 type Item = { id: string; src: number; index: number; rotation: number; thumb: string; label: string };
 
 const TABS: { id: Mode; label: string }[] = [
   { id: "edit", label: "تحرير PDF" },
   { id: "img2pdf", label: "صور ← PDF" },
   { id: "pdf2img", label: "PDF ← صور PNG" },
+  { id: "compress", label: "ضغط PDF" },
 ];
 
 let uid = 0;
@@ -63,11 +64,14 @@ function PdfTools() {
   const [name, setName] = useState("document");
   const [preview, setPreview] = useState<Item | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [level, setLevel] = useState<"low" | "mid" | "high">("mid");
+  const [sizes, setSizes] = useState<{ before: number; after: number } | null>(null);
 
   const reset = () => {
     sources.current = [];
     docs.current = [];
     setItems([]);
+    setSizes(null);
   };
 
   const switchMode = (m: Mode) => {
@@ -95,7 +99,7 @@ function PdfTools() {
           if (mode === "img2pdf") continue;
           if (sources.current.length === 0) setName(f.name.replace(/\.pdf$/i, ""));
           await addSource(await f.arrayBuffer(), f.name);
-        } else if (f.type.startsWith("image/") && mode !== "pdf2img") {
+        } else if (f.type.startsWith("image/") && mode !== "pdf2img" && mode !== "compress") {
           await addSource(await imageToPdfBytes(f, fit), f.name);
         }
       }
@@ -174,8 +178,34 @@ function PdfTools() {
     }
   }
 
+  const LEVELS = { low: { scale: 2, quality: 0.8 }, mid: { scale: 1.5, quality: 0.6 }, high: { scale: 1, quality: 0.45 } };
+  const fmt = (b: number) => (b > 1048576 ? `${(b / 1048576).toFixed(2)} MB` : `${(b / 1024).toFixed(0)} KB`);
+
+  async function exportCompressed() {
+    if (!sources.current.length) return;
+    try {
+      const before = sources.current.reduce((a, b) => a + b.byteLength, 0);
+      let after = 0;
+      for (let s = 0; s < sources.current.length; s++) {
+        const blob = await compressPdf(sources.current[s]!, LEVELS[level], (i, n) =>
+          setBusy(`جارٍ ضغط الصفحة ${i} من ${n}…`),
+        );
+        after += blob.size;
+        const label = items.find((it) => it.src === s)?.label.replace(/\.pdf$/i, "") || name;
+        downloadBlob(blob, `${sources.current.length > 1 ? label : name || "document"}-compressed.pdf`);
+      }
+      setSizes({ before, after });
+      toast.success("تم ضغط الملف وحفظه");
+    } catch (e) {
+      console.error(e);
+      toast.error("تعذر ضغط الملف");
+    } finally {
+      setBusy("");
+    }
+  }
+
   const accept =
-    mode === "img2pdf" ? "image/*" : mode === "pdf2img" ? "application/pdf" : "application/pdf,image/*";
+    mode === "img2pdf" ? "image/*" : mode === "pdf2img" || mode === "compress" ? "application/pdf" : "application/pdf,image/*";
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 pb-28 sm:pb-10">
@@ -185,7 +215,7 @@ function PdfTools() {
         description="حرّر صفحات PDF (ترتيب، حذف، تدوير، إضافة)، وحوّل الصور إلى PDF أو صفحات PDF إلى صور PNG منفصلة."
       />
 
-      <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-secondary p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-xl sm:grid-cols-4 border border-border bg-secondary p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -206,7 +236,7 @@ function PdfTools() {
         title={
           mode === "img2pdf"
             ? "اسحب الصور هنا أو اضغط للاختيار"
-            : mode === "pdf2img"
+            : mode === "pdf2img" || mode === "compress"
               ? "اسحب ملف PDF هنا أو اضغط للاختيار"
               : "اسحب ملفات PDF أو صوراً لإضافتها كصفحات"
         }
@@ -224,7 +254,19 @@ function PdfTools() {
           className="h-9 w-32 rounded-lg border border-input bg-background px-2 text-sm"
           aria-label="اسم الملف"
         />
-        {mode !== "pdf2img" && (
+        {mode === "compress" && (
+          <select
+            value={level}
+            onChange={(e) => setLevel(e.target.value as "low" | "mid" | "high")}
+            className="h-9 rounded-lg border border-input bg-background px-2 text-sm"
+            aria-label="مستوى الضغط"
+          >
+            <option value="low">ضغط خفيف (جودة عالية)</option>
+            <option value="mid">ضغط متوسط</option>
+            <option value="high">ضغط قوي (أصغر حجم)</option>
+          </select>
+        )}
+        {mode !== "pdf2img" && mode !== "compress" && (
           <select
             value={fit}
             onChange={(e) => setFit(e.target.value as "a4" | "image")}
@@ -255,7 +297,11 @@ function PdfTools() {
               <X className="size-4" /> مسح
             </Button>
           )}
-          {mode === "pdf2img" ? (
+          {mode === "compress" ? (
+            <Button size="sm" onClick={exportCompressed} disabled={!items.length || !!busy}>
+              <Download className="size-4" /> ضغط وحفظ
+            </Button>
+          ) : mode === "pdf2img" ? (
             <Button size="sm" onClick={exportPngs} disabled={!items.length || !!busy}>
               {supportsDirectoryPicker() ? <FolderDown className="size-4" /> : <Download className="size-4" />}
               حفظ الصور PNG
@@ -266,6 +312,14 @@ function PdfTools() {
             </Button>
           )}
         </div>
+        {mode === "compress" && sizes && !busy && (
+          <p className="w-full text-xs text-muted-foreground">
+            الحجم: {fmt(sizes.before)} ← {fmt(sizes.after)} ({Math.max(0, Math.round((1 - sizes.after / sizes.before) * 100))}% أصغر)
+          </p>
+        )}
+        {mode === "compress" && (
+          <p className="w-full text-[11px] text-muted-foreground">يحوّل الصفحات إلى صور مضغوطة؛ النص لن يكون قابلاً للتحديد بعد الضغط.</p>
+        )}
         {busy && (
           <p className="flex w-full items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="size-3.5 animate-spin" /> {busy}
@@ -324,7 +378,7 @@ function PdfTools() {
               </div>
             </div>
           ))}
-          {mode !== "pdf2img" && (
+          {mode !== "pdf2img" && mode !== "compress" && (
             <label className="surface grid aspect-[3/4] cursor-pointer place-items-center gap-2 border-2 border-dashed p-2 text-center text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary">
               <span className="grid place-items-center gap-2">
                 <ImagePlus className="size-7" /> إضافة صفحات
