@@ -702,7 +702,7 @@ function ExamBuilder() {
                 {selectedZoneItem.type === "text" && <div className="grid gap-1.5"><Label>محاذاة النص داخل المربع</Label><div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedZoneItem.align === side ? "default" : "ghost"} size="sm" onClick={() => patchZoneItem(selectedZone, selectedZoneItem.id, { align: side })} aria-label={`محاذاة النص ${side}`}><Icon className="size-4" /></Button>; })}</div></div>}
                 <div className="grid gap-1.5"><Label>محاذاة المربع بالنسبة للورقة</Label><div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedZoneItem.ca === side ? "default" : "ghost"} size="sm" onClick={() => alignHeaderItemToPage(selectedZoneItem, side)} aria-label={`محاذاة المربع ${side}`}><Icon className="size-4" /></Button>; })}</div></div>
               </>
-            ) : (
+            ) : selectedBlock ? (
               <>
                 <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
                   <span>{selectedBlock.type === "question" ? "سؤال نصي" : "صورة"}</span>
@@ -758,7 +758,7 @@ function ExamBuilder() {
                   <input id="block-width" className="accent-primary" type="range" min={15} max={100} value={Math.round(selectedBlock.w ?? (freeMode ? 92 : 100))} onChange={(event) => patchBlock(selectedBlock.id, { w: Number(event.target.value) })} />
                 </div>
               </>
-            )}
+            ) : null}
           </div>
 
           <div className="surface grid gap-3 p-4">
@@ -825,25 +825,17 @@ function ExamBuilder() {
                 <span>صفحة {pageIndex + 1}</span>
                 <div className="flex gap-1"><Button variant="ghost" size="sm" onClick={() => addQuestion(page.id)}><Plus className="size-4" /> سؤال</Button><Button variant="ghost" size="sm" onClick={() => removePage(page.id)}><Trash2 className="size-4" /> حذف الصفحة</Button></div>
               </div>
-               <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H, padding: `${marginY}px ${marginX}px` }} onClick={() => { setSelectedId(null); setSelectedHeaderId(null); }} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
+                <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H, padding: `${marginY}px ${marginX}px` }} onClick={() => { setSelectedId(null); setSelectedHeaderId(null); setSelectedFooterId(null); }} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
                  {showHeader && <div
                    ref={(element) => { headerRefs.current[page.id] = element; }}
                    className={headerLine ? "exam-header exam-header-lined relative select-none" : "exam-header relative select-none"}
                    style={{ height: headerSpace, minHeight: headerSpace, touchAction: "none" }}
-                   onPointerMove={(event) => onHeaderPointerMove(event, page.id)}
+                    onPointerMove={(event) => onZonePointerMove(event, page.id, "header")}
                    onPointerUp={endHeaderDrag}
                    onPointerCancel={endHeaderDrag}
                    onPointerLeave={endHeaderDrag}
                  >
-                   {headerItems.map((item) => <div
-                     key={item.id}
-                     className={`absolute cursor-move overflow-hidden border border-transparent p-1 ${selectedHeaderId === item.id ? "border-primary bg-primary/5" : "hover:border-border"}`}
-                     style={{ left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, textAlign: item.type === "text" ? item.align : "center", fontSize: item.type === "text" ? item.fontSize : undefined, fontWeight: item.type === "text" && item.bold ? 700 : undefined, touchAction: "none" }}
-                     onPointerDown={(event) => onHeaderPointerDown(event, page.id, item)}
-                     onClick={(event) => event.stopPropagation()}
-                   >
-                     {item.type === "text" ? item.text : <img src={item.src} alt={item.alt} className="pointer-events-none block h-auto w-full object-contain" />}
-                   </div>)}
+                    {renderZoneItems("header", headerItems, page.id)}
                  </div>}
 
                 <div
@@ -896,7 +888,7 @@ function ExamBuilder() {
                           onFocus={() => setSelectedId(block.id)}
                           onInput={(event) => patchBlock(block.id, { html: event.currentTarget.innerHTML })}
                           className="min-w-0 flex-1 outline-none"
-                          style={{ fontFamily: block.fontFamily, fontSize: block.fontSize, textAlign: block.align }}
+                          style={{ fontFamily: block.fontFamily, fontSize: block.fontSize, textAlign: block.align, color: block.color }}
                         />
                       </div> : <div style={{ textAlign: block.align }}><img src={block.src} alt={block.alt} className="inline-block max-h-72 object-contain" style={{ width: `${block.width}%` }} /></div>}
                     </div>;
@@ -904,7 +896,18 @@ function ExamBuilder() {
                   {page.blocks.length === 0 && <Button variant="outline" className="m-auto" onClick={(event) => { event.stopPropagation(); addQuestion(page.id); }}><Plus className="size-4" /> إضافة أول سؤال</Button>}
                 </div>
 
-                {showFooter && <div className={footerLine ? "exam-footer exam-footer-lined" : "exam-footer"} style={{ minHeight: footerSpace }}>{footerNote && <div className="font-bold">{footerNote}</div>}{footerText && <div>{footerText}</div>}{footerImage && <div style={{ textAlign: footerImageAlign }}><img src={footerImage} alt="صورة التذييل" className="inline-block object-contain" style={{ height: footerImageSize }} /></div>}{showPageNumber && <div className="text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}</div>}
+                {showFooter && <div
+                  ref={(element) => { footerRefs.current[page.id] = element; }}
+                  className={footerLine ? "exam-footer exam-footer-lined relative select-none" : "exam-footer relative select-none"}
+                  style={{ height: footerSpace, minHeight: footerSpace, touchAction: "none" }}
+                  onPointerMove={(event) => onZonePointerMove(event, page.id, "footer")}
+                  onPointerUp={endHeaderDrag}
+                  onPointerCancel={endHeaderDrag}
+                  onPointerLeave={endHeaderDrag}
+                >
+                  {renderZoneItems("footer", footerItems, page.id)}
+                  {showPageNumber && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}
+                </div>}
               </div>
             </div>
           ))}
@@ -912,8 +915,4 @@ function ExamBuilder() {
       </div>
     </div>
   );
-}
-
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <div className="grid gap-1.5"><Label className="text-xs">{label}</Label><Input value={value} onChange={(event) => onChange(event.target.value)} /></div>;
 }
