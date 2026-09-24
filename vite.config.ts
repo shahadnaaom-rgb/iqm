@@ -16,7 +16,7 @@ export default defineConfig({
     // Pre-bundle lazily imported libraries so Vite never re-optimizes mid-session
     // (re-optimization produces two React copies → "reading 'useState'" null errors).
     optimizeDeps: {
-      include: ["pdf-lib", "pdfjs-dist", "jspdf", "xlsx", "react", "react-dom", "react-dom/client"],
+      include: ["pdf-lib", "pdfjs-dist", "jspdf", "xlsx", "@tanstack/router-core", "@tanstack/router-core/isServer", "@tanstack/router-core/ssr/client", "seroval"],
     },
   },
 });
