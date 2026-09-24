@@ -664,16 +664,25 @@ function ExamBuilder() {
           <FilePlus2 className="size-4" /> صفحة
         </Button>
 
+        <select value={insertZone} onChange={(event) => setInsertZone(event.target.value as "body" | PageZone)} className="h-9 rounded-lg border border-border bg-background px-2 text-sm" aria-label="مكان الإضافة">
+          <option value="body">متن الورقة</option>
+          <option value="header">رأس الورقة</option>
+          <option value="footer">تذييل الورقة</option>
+        </select>
+        {insertZone !== "body" && <Button variant="outline" onClick={() => addZoneText(insertZone)}><Type className="size-4" /> نص</Button>}
+        {insertZone !== "body" && <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm"><ImagePlus className="size-4" /> صور<input className="hidden" type="file" accept="image/*" multiple onChange={(event) => { addZoneImages(insertZone, event.target.files); event.currentTarget.value = ""; }} /></label>}
+
         <div className="mx-1 h-7 w-px bg-border" />
-        <Button variant="ghost" size="icon" onMouseDown={(event) => event.preventDefault()} onClick={() => format("bold")} disabled={selectedBlock?.type !== "question"} aria-label="عريض" title="عريض">
+        <Button variant="ghost" size="icon" onMouseDown={(event) => event.preventDefault()} onClick={() => format("bold")} disabled={selectedBlock?.type !== "question" && selectedZoneItem?.type !== "text"} aria-label="عريض" title="عريض">
           <Bold className="size-4" />
         </Button>
-        <Button variant="ghost" size="icon" onMouseDown={(event) => event.preventDefault()} onClick={() => format("italic")} disabled={selectedBlock?.type !== "question"} aria-label="مائل" title="مائل">
+        <Button variant="ghost" size="icon" onMouseDown={(event) => event.preventDefault()} onClick={() => format("italic")} disabled={selectedBlock?.type !== "question" && selectedZoneItem?.type !== "text"} aria-label="مائل" title="مائل">
           <Italic className="size-4" />
         </Button>
-        <Button variant="ghost" size="icon" onMouseDown={(event) => event.preventDefault()} onClick={() => format("underline")} disabled={selectedBlock?.type !== "question"} aria-label="تحته خط" title="تحته خط">
+        <Button variant="ghost" size="icon" onMouseDown={(event) => event.preventDefault()} onClick={() => format("underline")} disabled={selectedBlock?.type !== "question" && selectedZoneItem?.type !== "text"} aria-label="تحته خط" title="تحته خط">
           <Underline className="size-4" />
         </Button>
+        <label className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md hover:bg-muted" title="لون النص"><Palette className="size-4" /><input type="color" className="absolute size-px opacity-0" defaultValue="#111111" onChange={(event) => applyTextColor(event.target.value)} disabled={selectedBlock?.type !== "question" && selectedZoneItem?.type !== "text"} /></label>
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[330px_minmax(0,1fr)]">
@@ -683,8 +692,16 @@ function ExamBuilder() {
               <LayoutGrid className="size-4 text-primary" />
               <h2 className="font-display font-bold">الكتلة المحددة</h2>
             </div>
-            {!selectedBlock ? (
-              <p className="text-sm leading-7 text-muted-foreground">اضغط على سؤال أو صورة داخل الورقة لتظهر أدواتها هنا.</p>
+            {!selectedBlock && !selectedZoneItem ? (
+              <p className="text-sm leading-7 text-muted-foreground">اضغط على أي نص أو صورة في الرأس أو المتن أو التذييل لتظهر أدواته هنا.</p>
+            ) : selectedZoneItem && selectedZone ? (
+              <>
+                <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm"><span>{selectedZone === "header" ? "عنصر الرأس" : "عنصر التذييل"}: {selectedZoneItem.label}</span><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => duplicateZoneItem(selectedZone, selectedZoneItem)} aria-label="تكرار العنصر"><Copy className="size-4" /></Button><Button variant="ghost" size="icon" onClick={() => removeZoneItem(selectedZone, selectedZoneItem.id)} aria-label="حذف العنصر"><Trash2 className="size-4" /></Button></div></div>
+                <div className="grid gap-1.5"><Label htmlFor="zone-item-width">عرض المربع: {Math.round(selectedZoneItem.w)}%</Label><input id="zone-item-width" className="accent-primary" type="range" min={8} max={100} value={selectedZoneItem.w} onChange={(event) => patchZoneItem(selectedZone, selectedZoneItem.id, { w: Number(event.target.value) })} /></div>
+                {selectedZoneItem.type === "text" && <div className="grid gap-1.5"><Label htmlFor="zone-text-size">حجم النص: {selectedZoneItem.fontSize}px</Label><input id="zone-text-size" className="accent-primary" type="range" min={10} max={40} value={selectedZoneItem.fontSize} onChange={(event) => patchZoneItem(selectedZone, selectedZoneItem.id, { fontSize: Number(event.target.value) })} /></div>}
+                {selectedZoneItem.type === "text" && <div className="grid gap-1.5"><Label>محاذاة النص داخل المربع</Label><div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedZoneItem.align === side ? "default" : "ghost"} size="sm" onClick={() => patchZoneItem(selectedZone, selectedZoneItem.id, { align: side })} aria-label={`محاذاة النص ${side}`}><Icon className="size-4" /></Button>; })}</div></div>}
+                <div className="grid gap-1.5"><Label>محاذاة المربع بالنسبة للورقة</Label><div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedZoneItem.ca === side ? "default" : "ghost"} size="sm" onClick={() => alignHeaderItemToPage(selectedZoneItem, side)} aria-label={`محاذاة المربع ${side}`}><Icon className="size-4" /></Button>; })}</div></div>
+              </>
             ) : (
               <>
                 <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
@@ -783,71 +800,13 @@ function ExamBuilder() {
           </div>
 
           <div className="surface grid gap-3 p-4">
-            <div className="flex items-center justify-between"><h2 className="font-display font-bold">رأس الورقة</h2><Switch checked={showHeader} onCheckedChange={setShowHeader} /></div>
-            {showHeader && <div className="grid gap-3">
-               <Field label="البسملة" value={headerText("basmala")} onChange={(value) => patchHeaderText("basmala", value)} />
-               <Field label="الوزارة" value={headerText("ministry")} onChange={(value) => patchHeaderText("ministry", value)} />
-               <Field label="المديرية" value={headerText("directorate")} onChange={(value) => patchHeaderText("directorate", value)} />
-               <Field label="المدرسة" value={headerText("school")} onChange={(value) => patchHeaderText("school", value)} />
-               <Field label="عنوان الامتحان" value={headerText("examTitle")} onChange={(value) => patchHeaderText("examTitle", value)} />
-               <Field label="المادة" value={headerText("subject")} onChange={(value) => patchHeaderText("subject", value)} />
-               <Field label="الصف" value={headerText("grade")} onChange={(value) => patchHeaderText("grade", value)} />
-               <Field label="الزمن" value={headerText("duration")} onChange={(value) => patchHeaderText("duration", value)} />
-               <Field label="التاريخ" value={headerText("dateText")} onChange={(value) => patchHeaderText("dateText", value)} />
-               <div className="grid gap-1.5">
-                 <Label className="text-xs">إضافة صور أو شعارات للرأس</Label>
-                 <Input type="file" accept="image/*" multiple onChange={(event) => { addHeaderImages(event.target.files); event.currentTarget.value = ""; }} />
-                 <p className="text-xs leading-6 text-muted-foreground">يمكن تحديد عدة صور دفعة واحدة، ثم سحب كل صورة بحرية داخل الرأس.</p>
-               </div>
-               {selectedHeaderItem && <div className="grid gap-3 rounded-md border border-border p-3">
-                 <div className="flex items-center justify-between gap-2">
-                   <span className="text-sm font-bold">العنصر المحدد: {selectedHeaderItem.label}</span>
-                   {selectedHeaderItem.type === "image" && <Button variant="ghost" size="icon" onClick={() => { setHeaderItems((current) => current.filter((item) => item.id !== selectedHeaderItem.id)); setSelectedHeaderId(null); }} aria-label="حذف صورة الرأس" title="حذف"><Trash2 className="size-4" /></Button>}
-                 </div>
-                 <div className="grid gap-1.5"><Label htmlFor="header-item-width" className="text-xs">العرض: {Math.round(selectedHeaderItem.w)}%</Label><input id="header-item-width" className="accent-primary" type="range" min={8} max={60} value={selectedHeaderItem.w} onChange={(event) => patchHeaderItem(selectedHeaderItem.id, { w: Number(event.target.value) })} /></div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-xs">محاذاة العنصر بالنسبة للورقة</Label>
-                    <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
-                      {(["right", "center", "left"] as TextAlign[]).map((side) => {
-                        const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
-                        return <Button key={side} variant={selectedHeaderItem.ca === side ? "default" : "ghost"} size="sm" onClick={() => alignHeaderItemToPage(selectedHeaderItem, side)} aria-label={`محاذاة عنصر الرأس ${side}`}><Icon className="size-4" /></Button>;
-                      })}
-                    </div>
-                  </div>
-                 {selectedHeaderItem.type === "text" && <>
-                   <div className="grid gap-1.5"><Label htmlFor="header-text-size" className="text-xs">حجم النص: {selectedHeaderItem.fontSize}px</Label><input id="header-text-size" className="accent-primary" type="range" min={10} max={40} value={selectedHeaderItem.fontSize} onChange={(event) => patchHeaderItem(selectedHeaderItem.id, { fontSize: Number(event.target.value) })} /></div>
-                    <div className="grid gap-1.5">
-                      <Label className="text-xs">محاذاة النص داخل العنصر</Label>
-                      <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">{(["right", "center", "left"] as TextAlign[]).map((side) => { const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft; return <Button key={side} variant={selectedHeaderItem.align === side ? "default" : "ghost"} size="sm" onClick={() => patchHeaderItem(selectedHeaderItem.id, { align: side })} aria-label={`محاذاة نص الرأس ${side}`}><Icon className="size-4" /></Button>; })}</div>
-                    </div>
-                 </>}
-               </div>}
-              <label className="flex items-center justify-between text-xs">خط فاصل أسفل الرأس<Switch checked={headerLine} onCheckedChange={setHeaderLine} /></label>
-            </div>}
-          </div>
-
-          <div className="surface grid gap-3 p-4">
-            <div className="flex items-center justify-between"><h2 className="font-display font-bold">تذييل الورقة</h2><Switch checked={showFooter} onCheckedChange={setShowFooter} /></div>
-            {showFooter && <div className="grid gap-3">
-              <Field label="سطر الختام" value={footerNote} onChange={setFooterNote} />
-              <div className="grid gap-1.5"><Label className="text-xs">نص التذييل</Label><Textarea value={footerText} onChange={(event) => setFooterText(event.target.value)} rows={2} /></div>
-              <div className="grid gap-1.5"><Label className="text-xs">صورة أو ختم في التذييل</Label><Input type="file" accept="image/*" onChange={(event) => readImage(event.target.files?.[0], setFooterImage)} /></div>
-              {footerImage && <>
-                <div className="grid gap-1.5"><Label htmlFor="footer-image-size" className="text-xs">حجم الصورة: {footerImageSize}px</Label><input id="footer-image-size" className="accent-primary" type="range" min={20} max={160} value={footerImageSize} onChange={(event) => setFooterImageSize(Number(event.target.value))} /></div>
-                <div className="grid gap-1.5">
-                  <Label className="text-xs">محاذاة الصورة</Label>
-                  <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1">
-                    {(["right", "center", "left"] as TextAlign[]).map((side) => {
-                      const Icon = side === "right" ? AlignRight : side === "center" ? AlignCenter : AlignLeft;
-                      return <Button key={side} variant={footerImageAlign === side ? "default" : "ghost"} size="sm" onClick={() => setFooterImageAlign(side)} aria-label={`محاذاة صورة التذييل ${side}`}><Icon className="size-4" /></Button>;
-                    })}
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setFooterImage(null)}><Trash2 className="size-4" /> إزالة الصورة</Button>
-              </>}
-              <label className="flex items-center justify-between text-xs">إظهار رقم الصفحة<Switch checked={showPageNumber} onCheckedChange={setShowPageNumber} /></label>
-              <label className="flex items-center justify-between text-xs">خط فاصل أعلى التذييل<Switch checked={footerLine} onCheckedChange={setFooterLine} /></label>
-            </div>}
+            <h2 className="font-display font-bold">الرأس والتذييل</h2>
+            <label className="flex items-center justify-between text-sm">إظهار الرأس<Switch checked={showHeader} onCheckedChange={setShowHeader} /></label>
+            <label className="flex items-center justify-between text-xs">خط أسفل الرأس<Switch checked={headerLine} onCheckedChange={setHeaderLine} /></label>
+            <label className="flex items-center justify-between text-sm">إظهار التذييل<Switch checked={showFooter} onCheckedChange={setShowFooter} /></label>
+            <label className="flex items-center justify-between text-xs">خط أعلى التذييل<Switch checked={footerLine} onCheckedChange={setFooterLine} /></label>
+            <label className="flex items-center justify-between text-xs">رقم الصفحة<Switch checked={showPageNumber} onCheckedChange={setShowPageNumber} /></label>
+            <p className="text-xs leading-6 text-muted-foreground">أضف النصوص والصور من الشريط العلوي، ثم عدّلها مباشرة داخل الورقة.</p>
           </div>
 
           <div className="surface grid gap-3 p-4">
