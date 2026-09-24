@@ -18,6 +18,8 @@ import {
   Plus,
   Trash2,
   Underline,
+  Type,
+  Palette,
   Wand2,
 } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent } from "react";
@@ -89,18 +91,8 @@ type ExamBlock = QuestionBlock | ImageBlock;
 type ExamPage = { id: string; blocks: ExamBlock[] };
 type DraggedBlock = { pageId: string; blockId: string };
 type ExportFormat = "png" | "jpeg" | "webp" | "pdf";
-type HeaderTextKey =
-  | "basmala"
-  | "ministry"
-  | "directorate"
-  | "school"
-  | "examTitle"
-  | "subject"
-  | "grade"
-  | "duration"
-  | "dateText";
 type HeaderTextItem = {
-  id: HeaderTextKey;
+  id: string;
   type: "text";
   label: string;
   text: string;
@@ -111,6 +103,7 @@ type HeaderTextItem = {
   fontSize: number;
   align: TextAlign;
   bold?: boolean;
+  color?: string;
 };
 type HeaderImageItem = {
   id: string;
@@ -124,7 +117,8 @@ type HeaderImageItem = {
   ca?: TextAlign | undefined;
 };
 type HeaderItem = HeaderTextItem | HeaderImageItem;
-type HeaderDrag = { id: string; pageId: string; startX: number; startY: number; originX: number; originY: number };
+type PageZone = "header" | "footer";
+type HeaderDrag = { id: string; pageId: string; zone: PageZone; startX: number; startY: number; originX: number; originY: number };
 
 const EXPORT_FORMATS: { id: ExportFormat; name: string }[] = [
   { id: "pdf", name: "PDF (كل الصفحات)" },
@@ -142,15 +136,14 @@ const EXPORT_SCALES: { id: number; name: string }[] = [
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const initialHeaderItems = (): HeaderItem[] => [
-  { id: "basmala", type: "text", label: "البسملة", text: "بسم الله الرحمن الرحيم", x: 32, y: 0, w: 36, fontSize: 16, align: "center", bold: true },
-  { id: "ministry", type: "text", label: "الوزارة", text: "وزارة التربية", x: 0, y: 28, w: 28, fontSize: 14, align: "right" },
-  { id: "directorate", type: "text", label: "المديرية", text: "المديرية العامة للتربية", x: 0, y: 48, w: 32, fontSize: 14, align: "right" },
-  { id: "school", type: "text", label: "المدرسة", text: "ثانوية النخبة", x: 0, y: 68, w: 28, fontSize: 14, align: "right" },
-  { id: "examTitle", type: "text", label: "عنوان الامتحان", text: "الامتحان الشهري الأول", x: 34, y: 32, w: 32, fontSize: 22, align: "center", bold: true },
-  { id: "subject", type: "text", label: "المادة", text: "الرياضيات", x: 38, y: 62, w: 24, fontSize: 14, align: "center" },
-  { id: "grade", type: "text", label: "الصف", text: "الصف الخامس العلمي", x: 72, y: 28, w: 28, fontSize: 14, align: "left" },
-  { id: "duration", type: "text", label: "الزمن", text: "الزمن: ساعة واحدة", x: 72, y: 48, w: 28, fontSize: 14, align: "left" },
-  { id: "dateText", type: "text", label: "التاريخ", text: "", x: 72, y: 68, w: 28, fontSize: 14, align: "left" },
+  { id: "school-directorate", type: "text", label: "اسم المدرسة ومديرية التربية", text: "اسم المدرسة\nمديرية التربية", x: 0, y: 18, w: 31, fontSize: 14, align: "right" },
+  { id: "basmala-exam", type: "text", label: "البسملة ونوع الأسئلة", text: "بسم الله الرحمن الرحيم\nالامتحان الشهري", x: 32, y: 0, w: 36, fontSize: 17, align: "center", bold: true },
+  { id: "subject", type: "text", label: "اسم المادة", text: "اسم المادة: ", x: 69, y: 18, w: 31, fontSize: 14, align: "left" },
+  { id: "exam-details", type: "text", label: "بيانات الامتحان", text: "الصف: ..........   الزمن: ..........   التاريخ: ..........", x: 18, y: 65, w: 64, fontSize: 13, align: "center" },
+];
+const initialFooterItems = (): HeaderItem[] => [
+  { id: "footer-note", type: "text", label: "سطر الختام", text: "انتهت الأسئلة", x: 35, y: 5, w: 30, fontSize: 13, align: "center", bold: true },
+  { id: "footer-wish", type: "text", label: "نص التذييل", text: "مع تمنياتي لكم بالنجاح — مدرس المادة", x: 22, y: 45, w: 56, fontSize: 12, align: "center" },
 ];
 const newQuestion = (html = "اكتب نص السؤال هنا..."): QuestionBlock => ({
   id: makeId(),
@@ -176,8 +169,8 @@ function ExamBuilder() {
   const [selectedHeaderId, setSelectedHeaderId] = useState<string | null>(null);
   const [headerLine, setHeaderLine] = useState(true);
   const [showFooter, setShowFooter] = useState(true);
-  const [footerText, setFooterText] = useState("مع تمنياتي لكم بالنجاح — مدرس المادة");
-  const [footerNote, setFooterNote] = useState("انتهت الأسئلة");
+  const [footerItems, setFooterItems] = useState<HeaderItem[]>(initialFooterItems);
+  const [selectedFooterId, setSelectedFooterId] = useState<string | null>(null);
   const [showPageNumber, setShowPageNumber] = useState(true);
   const [footerLine, setFooterLine] = useState(true);
   const [columns, setColumns] = useState<1 | 2>(1);
@@ -186,9 +179,6 @@ function ExamBuilder() {
   const [marginY, setMarginY] = useState(40);
   const [headerSpace, setHeaderSpace] = useState(120);
   const [footerSpace, setFooterSpace] = useState(70);
-  const [footerImage, setFooterImage] = useState<string | null>(null);
-  const [footerImageSize, setFooterImageSize] = useState(48);
-  const [footerImageAlign, setFooterImageAlign] = useState<TextAlign>("center");
   const [pages, setPages] = useState<ExamPage[]>([firstPage()]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragged, setDragged] = useState<DraggedBlock | null>(null);
@@ -202,6 +192,8 @@ function ExamBuilder() {
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const wrapRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const headerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const footerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const zoneEditorRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const imageInput = useRef<HTMLInputElement | null>(null);
   const freeDrag = useRef<
     | null
@@ -211,14 +203,20 @@ function ExamBuilder() {
 
   const selectedBlock = pages.flatMap((page) => page.blocks).find((block) => block.id === selectedId);
   const selectedHeaderItem = headerItems.find((item) => item.id === selectedHeaderId);
-  const examTitleItem = headerItems.find((item) => item.id === "examTitle");
-  const examTitle = examTitleItem?.type === "text" ? examTitleItem.text || "أسئلة" : "أسئلة";
+  const selectedFooterItem = footerItems.find((item) => item.id === selectedFooterId);
+  const selectedZoneItem = selectedHeaderItem ?? selectedFooterItem;
+  const selectedZone: PageZone | null = selectedHeaderItem ? "header" : selectedFooterItem ? "footer" : null;
+  const examTitleItem = headerItems.find((item) => item.id === "basmala-exam");
+  const examTitle = examTitleItem?.type === "text" ? examTitleItem.text.split("\n").at(-1) || "أسئلة" : "أسئلة";
 
   const patchHeaderItem = (id: string, patch: Partial<HeaderItem>) => {
     setHeaderItems((current) => current.map((item) => item.id === id ? ({ ...item, ...patch } as HeaderItem) : item));
   };
 
-  const patchHeaderText = (id: HeaderTextKey, text: string) => patchHeaderItem(id, { text } as Partial<HeaderTextItem>);
+  const patchFooterItem = (id: string, patch: Partial<HeaderItem>) => {
+    setFooterItems((current) => current.map((item) => item.id === id ? ({ ...item, ...patch } as HeaderItem) : item));
+  };
+  const patchZoneItem = (zone: PageZone, id: string, patch: Partial<HeaderItem>) => zone === "header" ? patchHeaderItem(id, patch) : patchFooterItem(id, patch);
 
   /** محاذاة عنصر الرأس نفسه بالنسبة للورقة، مستقلة عن محاذاة النص داخله */
   const alignHeaderItemToPage = (item: HeaderItem, side: TextAlign) => {
@@ -226,12 +224,7 @@ function ExamBuilder() {
     patchHeaderItem(item.id, { ca: side, x });
   };
 
-  const headerText = (id: HeaderTextKey) => {
-    const item = headerItems.find((candidate) => candidate.id === id);
-    return item?.type === "text" ? item.text : "";
-  };
-
-  const addHeaderImages = (files?: FileList | null) => {
+  const addZoneImages = (zone: PageZone, files?: FileList | null) => {
     if (!files?.length) return;
     Array.from(files).forEach((file, index) => {
       const reader = new FileReader();
@@ -239,28 +232,50 @@ function ExamBuilder() {
         const item: HeaderImageItem = {
           id: makeId(),
           type: "image",
-          label: file.name || "صورة الرأس",
+          label: file.name || (zone === "header" ? "صورة الرأس" : "صورة التذييل"),
           src: String(reader.result),
           alt: file.name || "صورة الرأس",
-          x: Math.min(80, 8 + ((headerItems.length + index) * 13) % 72),
+          x: Math.min(80, 8 + index * 13),
           y: 12 + (index % 3) * 24,
           w: 14,
         };
-        setHeaderItems((current) => [...current, item]);
-        setSelectedHeaderId(item.id);
+        if (zone === "header") { setHeaderItems((current) => [...current, item]); setSelectedHeaderId(item.id); setSelectedFooterId(null); }
+        else { setFooterItems((current) => [...current, item]); setSelectedFooterId(item.id); setSelectedHeaderId(null); }
       };
       reader.readAsDataURL(file);
     });
   };
 
-  const onHeaderPointerDown = (event: ReactPointerEvent, pageId: string, item: HeaderItem) => {
+  const addZoneText = (zone: PageZone) => {
+    const item: HeaderTextItem = { id: makeId(), type: "text", label: "مربع نص", text: "اكتب النص هنا", x: 30, y: 25, w: 40, fontSize: 14, align: "center" };
+    if (zone === "header") { setHeaderItems((current) => [...current, item]); setSelectedHeaderId(item.id); setSelectedFooterId(null); }
+    else { setFooterItems((current) => [...current, item]); setSelectedFooterId(item.id); setSelectedHeaderId(null); }
+    setSelectedId(null);
+    requestAnimationFrame(() => zoneEditorRefs.current[item.id]?.focus());
+  };
+
+  const duplicateZoneItem = (zone: PageZone, item: HeaderItem) => {
+    const copy = { ...item, id: makeId(), label: `${item.label} (نسخة)`, x: Math.min(100 - item.w, item.x + 4), y: Math.min(88, item.y + 8) } as HeaderItem;
+    if (zone === "header") { setHeaderItems((current) => [...current, copy]); setSelectedHeaderId(copy.id); }
+    else { setFooterItems((current) => [...current, copy]); setSelectedFooterId(copy.id); }
+  };
+
+  const removeZoneItem = (zone: PageZone, id: string) => {
+    if (zone === "header") { setHeaderItems((current) => current.filter((item) => item.id !== id)); setSelectedHeaderId(null); }
+    else { setFooterItems((current) => current.filter((item) => item.id !== id)); setSelectedFooterId(null); }
+  };
+
+  const onZonePointerDown = (event: ReactPointerEvent, pageId: string, zone: PageZone, item: HeaderItem) => {
+    if ((event.target as HTMLElement).isContentEditable) return;
     event.preventDefault();
     event.stopPropagation();
     setSelectedId(null);
-    setSelectedHeaderId(item.id);
+    if (zone === "header") { setSelectedHeaderId(item.id); setSelectedFooterId(null); }
+    else { setSelectedFooterId(item.id); setSelectedHeaderId(null); }
     headerDrag.current = {
       id: item.id,
       pageId,
+      zone,
       startX: event.clientX,
       startY: event.clientY,
       originX: item.x,
@@ -269,16 +284,17 @@ function ExamBuilder() {
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   };
 
-  const onHeaderPointerMove = (event: ReactPointerEvent, pageId: string) => {
+  const onZonePointerMove = (event: ReactPointerEvent, pageId: string, zone: PageZone) => {
     const drag = headerDrag.current;
-    const header = headerRefs.current[pageId];
-    if (!drag || drag.pageId !== pageId || !header) return;
-    const box = header.getBoundingClientRect();
-    const item = headerItems.find((candidate) => candidate.id === drag.id);
+    const container = zone === "header" ? headerRefs.current[pageId] : footerRefs.current[pageId];
+    if (!drag || drag.pageId !== pageId || drag.zone !== zone || !container) return;
+    const box = container.getBoundingClientRect();
+    const items = zone === "header" ? headerItems : footerItems;
+    const item = items.find((candidate) => candidate.id === drag.id);
     if (!item || box.width === 0 || box.height === 0) return;
     const x = Math.min(100 - item.w, Math.max(0, drag.originX + ((event.clientX - drag.startX) / box.width) * 100));
     const y = Math.min(92, Math.max(0, drag.originY + ((event.clientY - drag.startY) / box.height) * 100));
-    patchHeaderItem(item.id, { x, y, ca: undefined });
+    patchZoneItem(zone, item.id, { x, y, ca: undefined });
   };
 
   const endHeaderDrag = () => { headerDrag.current = null; };

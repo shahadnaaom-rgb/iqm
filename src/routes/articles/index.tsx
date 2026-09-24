@@ -6,7 +6,7 @@ import { PageHeader } from "../../components/PrivacyNote";
 import { articleImageSrc } from "../../components/ArticleContent";
 import { listArticles } from "../../lib/articles.functions";
 
-const articlesQuery = queryOptions({
+export const articlesQuery = queryOptions({
   queryKey: ["articles"],
   queryFn: () => listArticles(),
 });
