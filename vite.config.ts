@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Pre-bundle lazily imported libraries so Vite never re-optimizes mid-session
+    // (re-optimization produces two React copies → "reading 'useState'" null errors).
+    optimizeDeps: {
+      include: ["pdf-lib", "pdfjs-dist", "jspdf", "xlsx", "react", "react-dom", "react-dom/client"],
+    },
+  },
 });
