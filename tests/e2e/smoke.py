@@ -81,13 +81,18 @@ async def run() -> None:
         before = await editors.count()
         check("عرض كتل الأسئلة الافتراضية", before >= 3, f"{before} كتلة")
 
-        # 2) إضافة سؤال جديد
+        # 2) التحقق من نموذج الرأس ذي المربعات الأربعة
+        header = page.locator(".exam-header").first
+        check("أربعة مربعات في الرأس الافتراضي", await header.locator('[contenteditable="true"]').count() == 4)
+        check("إزالة مادة الرياضيات الافتراضية", await header.get_by_text("الرياضيات").count() == 0)
+
+        # 3) إضافة سؤال جديد
         await page.get_by_role("button", name="سؤال").first.click()
         await page.wait_for_timeout(500)
         after = await editors.count()
         check("إضافة سؤال جديد", after == before + 1, f"{before} → {after}")
 
-        # 3) لوحة الكتلة المحددة تفتح عند اختيار سؤال
+        # 4) لوحة الكتلة المحددة تفتح عند اختيار سؤال
         await editors.nth(0).click()
         await page.wait_for_timeout(400)
         check(
@@ -95,13 +100,24 @@ async def run() -> None:
             await page.get_by_text("سؤال نصي").first.is_visible(),
         )
 
-        # 4) أزرار التنسيق تصبح فعّالة
+        # 5) أزرار التنسيق تصبح فعّالة
         bold = page.get_by_role("button", name="عريض")
         check("تفعيل أزرار التنسيق", await bold.is_enabled())
         await bold.click()
         await page.wait_for_timeout(200)
 
-        # 5) الانتقال بين تبويبات الرموز وإدراج رمز
+        # 6) إضافة مربع رأس وتكراره وحذفه
+        await page.get_by_label("مكان الإضافة").select_option("header")
+        before_header = await header.locator('[contenteditable="true"]').count()
+        await page.get_by_role("button", name="نص", exact=True).click()
+        await page.wait_for_timeout(200)
+        check("إضافة مربع نص للرأس", await header.locator('[contenteditable="true"]').count() == before_header + 1)
+        await page.get_by_role("button", name="تكرار العنصر").click()
+        await page.wait_for_timeout(200)
+        check("تكرار عنصر الرأس", await header.locator('[contenteditable="true"]').count() == before_header + 2)
+        await page.get_by_role("button", name="حذف العنصر").click()
+
+        # 7) الانتقال بين تبويبات الرموز وإدراج رمز
         tabs = page.get_by_role("tab")
         tab_count = await tabs.count()
         check("عرض تبويبات الرموز", tab_count >= 3, f"{tab_count} تبويب")
@@ -110,7 +126,7 @@ async def run() -> None:
             await page.wait_for_timeout(300)
             check("الانتقال بين تبويبات الرموز", await tabs.nth(1).is_visible())
 
-        # 6) إضافة صفحة جديدة
+        # 8) إضافة صفحة جديدة
         await page.get_by_role("button", name="صفحة").first.click()
         await page.wait_for_timeout(600)
         check(
