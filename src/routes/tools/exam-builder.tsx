@@ -40,7 +40,6 @@ import {
 } from "../../components/ui/select";
 import { Switch } from "../../components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import { Textarea } from "../../components/ui/textarea";
 import { downloadBlob } from "../../lib/save";
 import { SYMBOL_GROUPS } from "../../lib/symbols";
 
@@ -186,6 +185,7 @@ function ExamBuilder() {
   const [busy, setBusy] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
   const [exportScale, setExportScale] = useState(3);
+  const [insertZone, setInsertZone] = useState<"body" | PageZone>("body");
 
   const editorRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const pageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -221,7 +221,7 @@ function ExamBuilder() {
   /** محاذاة عنصر الرأس نفسه بالنسبة للورقة، مستقلة عن محاذاة النص داخله */
   const alignHeaderItemToPage = (item: HeaderItem, side: TextAlign) => {
     const x = side === "right" ? 100 - item.w : side === "center" ? (100 - item.w) / 2 : 0;
-    patchHeaderItem(item.id, { ca: side, x });
+    if (selectedZone) patchZoneItem(selectedZone, item.id, { ca: side, x });
   };
 
   const addZoneImages = (zone: PageZone, files?: FileList | null) => {
@@ -464,11 +464,29 @@ function ExamBuilder() {
   };
 
   const format = (command: "bold" | "italic" | "underline") => {
-    if (!selectedBlock || selectedBlock.type !== "question") return;
-    editorRefs.current[selectedBlock.id]?.focus();
+    const textItem = selectedZoneItem?.type === "text" ? selectedZoneItem : null;
+    if ((!selectedBlock || selectedBlock.type !== "question") && !textItem) return;
+    const editor = selectedBlock?.type === "question" ? editorRefs.current[selectedBlock.id] : textItem ? zoneEditorRefs.current[textItem.id] : null;
+    editor?.focus();
     document.execCommand(command);
-    const html = editorRefs.current[selectedBlock.id]?.innerHTML;
-    if (html !== undefined) patchBlock(selectedBlock.id, { html });
+    if (selectedBlock?.type === "question" && editor) patchBlock(selectedBlock.id, { html: editor.innerHTML });
+    if (textItem && selectedZone && editor) patchZoneItem(selectedZone, textItem.id, { text: editor.innerHTML });
+  };
+
+  const applyTextColor = (color: string) => {
+    const textItem = selectedZoneItem?.type === "text" ? selectedZoneItem : null;
+    const editor = selectedBlock?.type === "question" ? editorRefs.current[selectedBlock.id] : textItem ? zoneEditorRefs.current[textItem.id] : null;
+    if (!editor) return;
+    editor.focus();
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed && editor.contains(selection.anchorNode)) {
+      document.execCommand("foreColor", false, color);
+      if (selectedBlock?.type === "question") patchBlock(selectedBlock.id, { html: editor.innerHTML });
+      if (textItem && selectedZone) patchZoneItem(selectedZone, textItem.id, { text: editor.innerHTML });
+      return;
+    }
+    if (textItem && selectedZone) patchZoneItem(selectedZone, textItem.id, { color });
+    else editor.style.color = color;
   };
 
   const insertSymbol = (symbol: string) => {
@@ -507,12 +525,6 @@ function ExamBuilder() {
     reader.readAsDataURL(file);
   };
 
-  const readImage = (file: File | undefined, apply: (dataUrl: string) => void) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => apply(String(reader.result));
-    reader.readAsDataURL(file);
-  };
   const addPage = () => {
     const page = { id: makeId(), blocks: [newQuestion()] };
     setPages((current) => [...current, page]);
