@@ -203,13 +203,18 @@
 }
 
 .exam-paper-viewport {
+  position: relative;
   width: min(794px, 100%);
-  height: min(1123px, calc(100cqw * 1123 / 794));
+  aspect-ratio: 794 / 1123;
   container-type: inline-size;
   overflow: hidden;
 }
 
 .exam-paper-viewport > .exam-paper {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -397px;
   transform: scale(min(1, calc(100cqw / 794)));
   transform-origin: top center;
 }
