@@ -14,6 +14,7 @@ import { Progress } from "../../components/ui/progress";
 import { Textarea } from "../../components/ui/textarea";
 import {
   canvasToBlob,
+  autoNumberCount,
   drawCertificate,
   loadImageFromFile,
   newField,
@@ -91,6 +92,8 @@ function BulkCertificates() {
       : [NAME];
 
   const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
+  const numberField = fields.find((f) => f.autoNumber);
+  const outputCount = numberField ? autoNumberCount(numberField) : rows.length;
   const patch = (id: string, p: Partial<Field>) =>
     setFields((prev) => prev.map((f) => (f.id === id ? { ...f, ...p } : f)));
 
@@ -139,14 +142,14 @@ function BulkCertificates() {
   };
 
   const generate = async () => {
-    if (!image || !rows.length) return;
-    setProgress({ done: 0, total: rows.length });
+    if (!image || outputCount < 1) return;
+    setProgress({ done: 0, total: outputCount });
     const dir = supportsDirectoryPicker() ? await pickDirectory() : null;
     const canvas = document.createElement("canvas");
     const nameKey = fields[0]?.key ?? NAME;
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i]!;
+    for (let i = 0; i < outputCount; i++) {
+      const row = rows[i] ?? {};
       drawCertificate(canvas, image, fields, { ...row, __index: String(i) }, scaleOf(quality));
       const blob = await canvasToBlob(canvas, "image/png");
       const file = `${String(i + 1).padStart(3, "0")}-${safeFileName(row[nameKey] || `طالب-${i + 1}`)}.png`;
@@ -157,7 +160,7 @@ function BulkCertificates() {
     }
 
     setProgress(null);
-    toast.success(`تم إنشاء ${rows.length} شهادة`, { duration: 10000, action: { label: "اذهب للتجميع", onClick: () => { window.location.href = "/tools/collage"; } } });
+    toast.success(`تم إنشاء ${outputCount} شهادة`, { duration: 10000, action: { label: "اذهب للتجميع", onClick: () => { window.location.href = "/tools/collage"; } } });
   };
 
   return (
@@ -273,13 +276,13 @@ function BulkCertificates() {
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                <Button onClick={generate} disabled={!rows.length}>
+                <Button onClick={generate} disabled={outputCount < 1}>
                   {supportsDirectoryPicker() ? (
                     <FolderDown className="size-4" />
                   ) : (
                     <Download className="size-4" />
                   )}
-                  إنشاء {rows.length || ""} شهادة
+                  إنشاء {outputCount || ""} شهادة
                 </Button>
                 <Button variant="ghost" onClick={() => setImage(null)}>
                   تغيير القالب
@@ -322,6 +325,17 @@ function BulkCertificates() {
                   }}
                 >
                   <Plus className="size-4" /> إضافة حقل
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const f = newField({ key: "الرقم", text: "001", x: 0.85, y: 0.1, fontSize: 0.04, bold: false, autoNumber: { start: 1, end: Math.max(1, rows.length || 10), pad: 3, prefix: "" } });
+                    setFields((prev) => [...prev, f]);
+                    setSelected(f.id);
+                  }}
+                >
+                  <Plus className="size-4" /> ترقيم من–إلى
                 </Button>
               </div>
             </div>

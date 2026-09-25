@@ -19,8 +19,8 @@ export type Field = {
   align: Align;
   rotation: number;
   letterSpacing: number;
-  /** ترقيم تلقائي: يزيد الرقم مع كل نسخة */
-  autoNumber?: { start: number; pad: number; prefix: string } | undefined;
+  /** ترقيم تلقائي: ينشئ نسخة لكل رقم ضمن المدى، مع تضمين الطرفين */
+  autoNumber?: { start: number; end: number; pad: number; prefix: string } | undefined;
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
@@ -53,6 +53,11 @@ export function fieldValue(field: Field, row?: Record<string, string>) {
   if (!row) return field.text;
   const value = row[field.key];
   return value !== undefined && value !== "" ? String(value) : field.text;
+}
+
+export function autoNumberCount(field?: Field) {
+  if (!field?.autoNumber) return 1;
+  return Math.max(1, field.autoNumber.end - field.autoNumber.start + 1);
 }
 
 /** يرسم القالب والحقول على Canvas بأبعاد الصورة الأصلية */

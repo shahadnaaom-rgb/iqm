@@ -48,13 +48,15 @@ export function FieldControls({
       <div className="grid gap-2 rounded-lg border border-border p-3">
         <label className="flex items-center justify-between gap-2 text-sm font-medium">
           ترقيم تلقائي
-          <input type="checkbox" className="size-4 accent-primary" checked={!!field.autoNumber} onChange={(e) => onChange({ autoNumber: e.target.checked ? { start: 1, pad: 3, prefix: "" } : undefined })} />
+          <input type="checkbox" className="size-4 accent-primary" checked={!!field.autoNumber} onChange={(e) => onChange({ autoNumber: e.target.checked ? { start: 1, end: 10, pad: 3, prefix: "" } : undefined })} />
         </label>
         {field.autoNumber && (
-          <div className="grid grid-cols-3 gap-2">
-            <div className="grid gap-1"><Label className="text-xs">يبدأ من</Label><Input type="number" min={0} value={field.autoNumber.start} onChange={(e) => onChange({ autoNumber: { ...field.autoNumber!, start: Math.max(0, Number(e.target.value) || 0) } })} /></div>
-            <div className="grid gap-1"><Label className="text-xs">عدد الخانات</Label><Input type="number" min={1} max={8} value={field.autoNumber.pad} onChange={(e) => onChange({ autoNumber: { ...field.autoNumber!, pad: Math.min(8, Math.max(1, Number(e.target.value) || 1)) } })} /></div>
-            <div className="grid gap-1"><Label className="text-xs">بادئة</Label><Input value={field.autoNumber.prefix} placeholder="No. " onChange={(e) => onChange({ autoNumber: { ...field.autoNumber!, prefix: e.target.value.slice(0, 20) } })} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-1"><Label className="text-xs">من رقم</Label><Input type="number" min={0} value={field.autoNumber.start} onChange={(e) => { const current = field.autoNumber; if (!current) return; const start = Math.max(0, Number(e.target.value) || 0); onChange({ autoNumber: { ...current, start, end: Math.max(start, current.end) } }); }} /></div>
+            <div className="grid gap-1"><Label className="text-xs">إلى رقم</Label><Input type="number" min={field.autoNumber.start} value={field.autoNumber.end} onChange={(e) => { const current = field.autoNumber; if (!current) return; onChange({ autoNumber: { ...current, end: Math.max(current.start, Number(e.target.value) || current.start) } }); }} /></div>
+            <div className="grid gap-1"><Label className="text-xs">عدد الخانات</Label><Input type="number" min={1} max={8} value={field.autoNumber.pad} onChange={(e) => { const current = field.autoNumber; if (!current) return; onChange({ autoNumber: { ...current, pad: Math.min(8, Math.max(1, Number(e.target.value) || 1)) } }); }} /></div>
+            <div className="grid gap-1"><Label className="text-xs">بادئة</Label><Input value={field.autoNumber.prefix} placeholder="No. " onChange={(e) => { const current = field.autoNumber; if (!current) return; onChange({ autoNumber: { ...current, prefix: e.target.value.slice(0, 20) } }); }} /></div>
+            <p className="col-span-2 text-xs font-medium text-primary">عدد النسخ: {Math.max(1, field.autoNumber.end - field.autoNumber.start + 1)}</p>
           </div>
         )}
       </div>
@@ -97,7 +99,7 @@ export function FieldControls({
           />
         </div>
         <div className="grid gap-2">
-          <Label>الوزن والمحاذاة</Label>
+          <Label>تنسيق ومحاذاة النص داخل الحقل</Label>
           <div className="flex gap-1">
             <Button
               type="button"
@@ -164,7 +166,7 @@ export function FieldControls({
       />
 
       <div className="grid gap-2 rounded-lg border border-border p-3">
-        <Label>المحاذاة بالنسبة للقالب</Label>
+        <Label>محاذاة الحقل بالنسبة للكانفا</Label>
         <p className="text-xs text-muted-foreground">
           تضع الحقل في مكانه على القالب، وتبقى محاذاة النص أعلاه كما هي.
         </p>
