@@ -157,7 +157,7 @@ function BulkCertificates() {
     }
 
     setProgress(null);
-    toast.success(`تم إنشاء ${rows.length} شهادة`);
+    toast.success(`تم إنشاء ${rows.length} شهادة`, { duration: 10000, action: { label: "اذهب للتجميع", onClick: () => { window.location.href = "/tools/collage"; } } });
   };
 
   return (

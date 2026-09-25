@@ -1,3 +1,4 @@
+import type React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   AlignCenter,
@@ -162,6 +163,19 @@ const firstPage = (): ExamPage => ({
   ],
 });
 
+function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="surface p-4">
+      <button type="button" className="flex w-full items-center justify-between xl:pointer-events-none" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <h2 className="font-display font-bold">{title}</h2>
+        <ChevronDown className={`size-4 transition-transform xl:hidden ${open ? "rotate-180" : ""}`} />
+      </button>
+      <div className={`${open ? "grid" : "hidden"} gap-3 pt-3 xl:grid`}>{children}</div>
+    </div>
+  );
+}
+
 function ExamBuilder() {
   const { families } = useFontFamilies();
   const [showHeader, setShowHeader] = useState(true);
@@ -172,6 +186,7 @@ function ExamBuilder() {
   const [footerItems, setFooterItems] = useState<HeaderItem[]>(initialFooterItems);
   const [selectedFooterId, setSelectedFooterId] = useState<string | null>(null);
   const [showPageNumber, setShowPageNumber] = useState(true);
+  const [showNumbers, setShowNumbers] = useState(true);
   const [footerLine, setFooterLine] = useState(true);
   const [columns, setColumns] = useState<1 | 2>(1);
   const [freeMode, setFreeMode] = useState(false);
@@ -769,8 +784,7 @@ function ExamBuilder() {
             ) : null}
           </div>
 
-          <div className="surface grid gap-3 p-4">
-            <h2 className="font-display font-bold">تخطيط الورقة</h2>
+          <Panel title="تخطيط الورقة">
             <div className="grid grid-cols-2 gap-2">
               <Button size="sm" disabled={freeMode} variant={columns === 1 ? "default" : "outline"} onClick={() => setColumns(1)}>عمود واحد</Button>
               <Button size="sm" disabled={freeMode} variant={columns === 2 ? "default" : "outline"} onClick={() => setColumns(2)}>عمودان</Button>
@@ -784,10 +798,9 @@ function ExamBuilder() {
                 ? "اسحب الكتلة من أي مكان فيها لتضعها حيث تشاء داخل الورقة، وتحكّم بعرضها من الأسفل."
                 : "الترتيب تلقائي من الأعلى للأسفل؛ فعّل التحريك الحر لوضع كل سؤال في المكان الذي تريده."}
             </p>
-          </div>
+          </Panel>
 
-          <div className="surface grid gap-3 p-4">
-            <h2 className="font-display font-bold">مساحات الصفحة</h2>
+          <Panel title="مساحات الصفحة">
             <div className="grid gap-1.5">
               <Label htmlFor="margin-x">هامش الجانبين: {marginX}px</Label>
               <input id="margin-x" className="accent-primary" type="range" min={10} max={120} value={marginX} onChange={(event) => setMarginX(Number(event.target.value))} />
@@ -805,25 +818,24 @@ function ExamBuilder() {
               <input id="footer-space" className="accent-primary" type="range" min={0} max={250} step={5} value={footerSpace} onChange={(event) => setFooterSpace(Number(event.target.value))} />
             </div>
             <Button variant="ghost" size="sm" onClick={() => { setMarginX(44); setMarginY(40); setHeaderSpace(120); setFooterSpace(70); }}>إرجاع القياسات الافتراضية</Button>
-          </div>
+          </Panel>
 
-          <div className="surface grid gap-3 p-4">
-            <h2 className="font-display font-bold">الرأس والتذييل</h2>
+          <Panel title="الرأس والتذييل">
             <label className="flex items-center justify-between text-sm">إظهار الرأس<Switch checked={showHeader} onCheckedChange={setShowHeader} /></label>
             <label className="flex items-center justify-between text-xs">خط أسفل الرأس<Switch checked={headerLine} onCheckedChange={setHeaderLine} /></label>
             <label className="flex items-center justify-between text-sm">إظهار التذييل<Switch checked={showFooter} onCheckedChange={setShowFooter} /></label>
             <label className="flex items-center justify-between text-xs">خط أعلى التذييل<Switch checked={footerLine} onCheckedChange={setFooterLine} /></label>
+            <label className="flex items-center justify-between text-xs">ترقيم الأسئلة (س1، س2...)<Switch checked={showNumbers} onCheckedChange={setShowNumbers} /></label>
             <label className="flex items-center justify-between text-xs">رقم الصفحة<Switch checked={showPageNumber} onCheckedChange={setShowPageNumber} /></label>
             <p className="text-xs leading-6 text-muted-foreground">أضف النصوص والصور من الشريط العلوي، ثم عدّلها مباشرة داخل الورقة.</p>
-          </div>
+          </Panel>
 
-          <div className="surface grid gap-3 p-4">
-            <div className="flex items-center justify-between"><h2 className="font-display font-bold">الرموز الشائعة</h2><span className="text-xs text-muted-foreground">للسؤال المحدد</span></div>
+          <Panel title="الرموز الشائعة">
             <Tabs defaultValue={SYMBOL_GROUPS[0]?.id ?? "math"}>
               <TabsList className="flex h-auto w-full flex-wrap justify-start">{SYMBOL_GROUPS.map((group) => <TabsTrigger key={group.id} value={group.id} className="text-xs">{group.label}</TabsTrigger>)}</TabsList>
               {SYMBOL_GROUPS.map((group) => <TabsContent key={group.id} value={group.id} className="mt-3"><div className="flex flex-wrap gap-1.5">{group.items.map((item) => <Button key={group.id + item.s + item.t} type="button" title={item.t} variant="outline" size="sm" onMouseDown={(event) => event.preventDefault()} onClick={() => insertSymbol(item.s)}>{item.s}</Button>)}</div></TabsContent>)}
             </Tabs>
-          </div>
+          </Panel>
         </aside>
 
         <div className="grid justify-items-center gap-8 overflow-x-auto pb-8">
@@ -882,7 +894,7 @@ function ExamBuilder() {
                     >
                       <div className="exam-block-handle" aria-hidden="true"><GripVertical className="size-4" /></div>
                       {block.type === "question" ? <div className="flex items-start gap-2">
-                        <span className="shrink-0 pt-0.5 font-bold">س{currentQuestionNumber}.</span>
+                        {showNumbers && <span className="shrink-0 pt-0.5 font-bold">س{currentQuestionNumber}.</span>}
                         <div
                           ref={(element) => {
                             editorRefs.current[block.id] = element;
