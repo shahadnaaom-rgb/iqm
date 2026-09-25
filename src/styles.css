@@ -215,7 +215,7 @@
   top: 0;
   left: 50%;
   margin-left: -397px;
-  transform: scale(min(1, calc(100cqw / 794)));
+  transform: scale(min(1, calc(100cqw / 794px)));
   transform-origin: top center;
 }
 
