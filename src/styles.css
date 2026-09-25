@@ -202,6 +202,23 @@
   overflow: hidden;
 }
 
+.exam-paper-viewport {
+  position: relative;
+  width: min(794px, 100%);
+  aspect-ratio: 794 / 1123;
+  container-type: inline-size;
+  overflow: hidden;
+}
+
+.exam-paper-viewport > .exam-paper {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -397px;
+  transform: scale(min(1, calc(100cqw / 794px)));
+  transform-origin: top center;
+}
+
 .exam-header {
   padding-bottom: 10px;
   margin-bottom: 14px;
@@ -245,6 +262,22 @@
   border-color: var(--color-primary);
   border-style: solid;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
+}
+
+.exam-zone-item-selected {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 22%, transparent);
+}
+
+@media (max-width: 767px) {
+  .exam-paper-viewport {
+    width: min(520px, 94%);
+  }
+
+  .exam-block-selected,
+  .exam-zone-item-selected {
+    border-width: 2px;
+    box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-primary) 28%, transparent);
+  }
 }
 .exam-block-drop {
   border-color: var(--color-primary);

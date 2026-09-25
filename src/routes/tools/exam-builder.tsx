@@ -232,6 +232,23 @@ function ExamBuilder() {
   const patchFooterItem = (id: string, patch: Partial<HeaderItem>) => {
     setFooterItems((current) => current.map((item) => item.id === id ? ({ ...item, ...patch } as HeaderItem) : item));
   };
+
+  const selectBlock = (id: string) => {
+    setSelectedId(id);
+    setSelectedHeaderId(null);
+    setSelectedFooterId(null);
+  };
+
+  const selectZoneItem = (zone: PageZone, id: string) => {
+    setSelectedId(null);
+    if (zone === "header") {
+      setSelectedHeaderId(id);
+      setSelectedFooterId(null);
+    } else {
+      setSelectedFooterId(id);
+      setSelectedHeaderId(null);
+    }
+  };
   const patchZoneItem = (zone: PageZone, id: string, patch: Partial<HeaderItem>) => zone === "header" ? patchHeaderItem(id, patch) : patchFooterItem(id, patch);
 
   /** محاذاة عنصر الرأس نفسه بالنسبة للورقة، مستقلة عن محاذاة النص داخله */
@@ -285,9 +302,7 @@ function ExamBuilder() {
     if ((event.target as HTMLElement).isContentEditable) return;
     event.preventDefault();
     event.stopPropagation();
-    setSelectedId(null);
-    if (zone === "header") { setSelectedHeaderId(item.id); setSelectedFooterId(null); }
-    else { setSelectedFooterId(item.id); setSelectedHeaderId(null); }
+    selectZoneItem(zone, item.id);
     headerDrag.current = {
       id: item.id,
       pageId,
@@ -348,7 +363,7 @@ function ExamBuilder() {
     if (!freeMode) return;
     event.preventDefault();
     event.stopPropagation();
-    setSelectedId(block.id);
+    selectBlock(block.id);
     freeDrag.current = {
       id: block.id,
       pageId,
@@ -516,7 +531,7 @@ function ExamBuilder() {
     const selected = zone === "header" ? selectedHeaderId === item.id : selectedFooterId === item.id;
     return <div
       key={item.id}
-      className={`absolute cursor-move overflow-hidden border border-transparent p-1 ${selected ? "border-primary bg-primary/5" : "hover:border-border"}`}
+      className={`exam-zone-item absolute cursor-move overflow-hidden border border-transparent p-1 ${selected ? "exam-zone-item-selected border-primary bg-primary/5" : "hover:border-border"}`}
       style={{ left: `${item.x}%`, top: `${item.y}%`, width: `${item.w}%`, textAlign: item.type === "text" ? item.align : "center", fontFamily: item.type === "text" ? item.fontFamily : undefined, fontSize: item.type === "text" ? item.fontSize : undefined, fontWeight: item.type === "text" && item.bold ? 700 : undefined, color: item.type === "text" ? item.color : undefined, touchAction: "none" }}
       onPointerDown={(event) => onZonePointerDown(event, pageId, zone, item)}
       onClick={(event) => event.stopPropagation()}
@@ -526,8 +541,8 @@ function ExamBuilder() {
         contentEditable
         suppressContentEditableWarning
         className="min-h-5 cursor-text whitespace-pre-line leading-normal outline-none"
-        onPointerDown={(event) => event.stopPropagation()}
-        onFocus={() => { setSelectedId(null); if (zone === "header") { setSelectedHeaderId(item.id); setSelectedFooterId(null); } else { setSelectedFooterId(item.id); setSelectedHeaderId(null); } }}
+        onPointerDown={(event) => { event.stopPropagation(); selectZoneItem(zone, item.id); }}
+        onFocus={() => selectZoneItem(zone, item.id)}
         onInput={(event) => patchZoneItem(zone, item.id, { text: event.currentTarget.innerHTML })}
       /> : <img src={item.src} alt={item.alt} className="pointer-events-none block h-auto w-full object-contain" />}
     </div>;
@@ -838,13 +853,14 @@ function ExamBuilder() {
           </Panel>
         </aside>
 
-        <div className="grid justify-items-center gap-8 overflow-x-auto pb-8">
+        <div className="grid min-w-0 justify-items-center gap-8 overflow-hidden pb-8">
           {pages.map((page, pageIndex) => (
-            <div key={page.id} className="grid gap-2">
+            <div key={page.id} className="grid w-full justify-items-center gap-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>صفحة {pageIndex + 1}</span>
                 <div className="flex gap-1"><Button variant="ghost" size="sm" onClick={() => addQuestion(page.id)}><Plus className="size-4" /> سؤال</Button><Button variant="ghost" size="sm" onClick={() => removePage(page.id)}><Trash2 className="size-4" /> حذف الصفحة</Button></div>
               </div>
+              <div className="exam-paper-viewport">
                 <div ref={(element) => { pageRefs.current[page.id] = element; }} dir="rtl" className="exam-paper" style={{ width: A4_W, height: A4_H, padding: `${marginY}px ${marginX}px` }} onClick={() => { setSelectedId(null); setSelectedHeaderId(null); setSelectedFooterId(null); }} onDragOver={(event) => event.preventDefault()} onDrop={() => dropBlock(page.id)}>
                  {showHeader && <div
                    ref={(element) => { headerRefs.current[page.id] = element; }}
@@ -889,7 +905,7 @@ function ExamBuilder() {
                       onDragEnd={() => { setDragged(null); setDropTarget(null); }}
                       onDragOver={freeMode ? undefined : (event) => { event.preventDefault(); event.stopPropagation(); setDropTarget(block.id); }}
                       onDrop={freeMode ? undefined : (event) => { event.preventDefault(); event.stopPropagation(); dropBlock(page.id, block.id); }}
-                      onClick={(event) => { event.stopPropagation(); setSelectedId(block.id); }}
+                       onClick={(event) => { event.stopPropagation(); selectBlock(block.id); }}
                       className={`exam-block group ${freeMode ? "exam-block-free" : ""} ${selected ? "exam-block-selected" : ""} ${dropTarget === block.id && dragged?.blockId !== block.id ? "exam-block-drop" : ""}`}
                     >
                       <div className="exam-block-handle" aria-hidden="true"><GripVertical className="size-4" /></div>
@@ -904,8 +920,8 @@ function ExamBuilder() {
                           }}
                           contentEditable
                           suppressContentEditableWarning
-                          onPointerDown={(event) => event.stopPropagation()}
-                          onFocus={() => setSelectedId(block.id)}
+                           onPointerDown={(event) => { event.stopPropagation(); selectBlock(block.id); }}
+                           onFocus={() => selectBlock(block.id)}
                           onInput={(event) => patchBlock(block.id, { html: event.currentTarget.innerHTML })}
                           className="min-w-0 flex-1 outline-none"
                           style={{ fontFamily: block.fontFamily, fontSize: block.fontSize, textAlign: block.align, color: block.color }}
@@ -928,6 +944,7 @@ function ExamBuilder() {
                   {renderZoneItems("footer", footerItems, page.id)}
                   {showPageNumber && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">صفحة {pageIndex + 1} من {pages.length}</div>}
                 </div>}
+                </div>
               </div>
             </div>
           ))}
