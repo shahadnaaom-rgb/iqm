@@ -147,7 +147,7 @@ function BulkCertificates() {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]!;
-      drawCertificate(canvas, image, fields, row, scaleOf(quality));
+      drawCertificate(canvas, image, fields, { ...row, __index: String(i) }, scaleOf(quality));
       const blob = await canvasToBlob(canvas, "image/png");
       const file = `${String(i + 1).padStart(3, "0")}-${safeFileName(row[nameKey] || `طالب-${i + 1}`)}.png`;
       if (dir) await writeToDirectory(dir, file, blob);

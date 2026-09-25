@@ -45,7 +45,21 @@ export function FieldControls({
         )}
       </div>
 
-      {showText && (
+      <div className="grid gap-2 rounded-lg border border-border p-3">
+        <label className="flex items-center justify-between gap-2 text-sm font-medium">
+          ترقيم تلقائي
+          <input type="checkbox" className="size-4 accent-primary" checked={!!field.autoNumber} onChange={(e) => onChange({ autoNumber: e.target.checked ? { start: 1, pad: 3, prefix: "" } : undefined })} />
+        </label>
+        {field.autoNumber && (
+          <div className="grid grid-cols-3 gap-2">
+            <div className="grid gap-1"><Label className="text-xs">يبدأ من</Label><Input type="number" min={0} value={field.autoNumber.start} onChange={(e) => onChange({ autoNumber: { ...field.autoNumber!, start: Math.max(0, Number(e.target.value) || 0) } })} /></div>
+            <div className="grid gap-1"><Label className="text-xs">عدد الخانات</Label><Input type="number" min={1} max={8} value={field.autoNumber.pad} onChange={(e) => onChange({ autoNumber: { ...field.autoNumber!, pad: Math.min(8, Math.max(1, Number(e.target.value) || 1)) } })} /></div>
+            <div className="grid gap-1"><Label className="text-xs">بادئة</Label><Input value={field.autoNumber.prefix} placeholder="No. " onChange={(e) => onChange({ autoNumber: { ...field.autoNumber!, prefix: e.target.value.slice(0, 20) } })} /></div>
+          </div>
+        )}
+      </div>
+
+      {showText && !field.autoNumber && (
         <div className="grid gap-2">
           <Label>النص</Label>
           <Input

@@ -19,6 +19,8 @@ export type Field = {
   align: Align;
   rotation: number;
   letterSpacing: number;
+  /** ترقيم تلقائي: يزيد الرقم مع كل نسخة */
+  autoNumber?: { start: number; pad: number; prefix: string };
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
@@ -43,6 +45,11 @@ export function newField(partial: Partial<Field> = {}): Field {
 }
 
 export function fieldValue(field: Field, row?: Record<string, string>) {
+  if (field.autoNumber) {
+    const { start, pad, prefix } = field.autoNumber;
+    const idx = Number(row?.__index ?? 0) || 0;
+    return `${prefix}${String(start + idx).padStart(pad, "0")}`;
+  }
   if (!row) return field.text;
   const value = row[field.key];
   return value !== undefined && value !== "" ? String(value) : field.text;

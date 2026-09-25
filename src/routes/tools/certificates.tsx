@@ -44,6 +44,8 @@ function SingleCertificate() {
   const [fields, setFields] = useState<Field[]>([newField()]);
   const [selected, setSelected] = useState<string | null>(null);
   const [quality, setQuality] = useState<ExportScaleId>(DEFAULT_SCALE);
+  const [copies, setCopies] = useState(1);
+  const hasNumber = fields.some((f) => f.autoNumber);
 
   const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
 
@@ -63,11 +65,17 @@ function SingleCertificate() {
   const save = async (type: "image/png" | "image/jpeg") => {
     if (!image) return;
     const canvas = document.createElement("canvas");
-    drawCertificate(canvas, image, fields, undefined, scaleOf(quality));
-    const blob = await canvasToBlob(canvas, type);
-    const first = fields[0] ? fieldValue(fields[0]) : "شهادة";
-    downloadBlob(blob, `${safeFileName(first)}.${type === "image/png" ? "png" : "jpg"}`);
-    toast.success("تم حفظ الشهادة", { duration: 10000, action: { label: "اذهب للتجميع", onClick: () => { window.location.href = "/tools/collage"; } } });
+    const total = hasNumber ? copies : 1;
+    const numField = fields.find((f) => f.autoNumber);
+    for (let i = 0; i < total; i++) {
+      const row = { __index: String(i) };
+      drawCertificate(canvas, image, fields, row, scaleOf(quality));
+      const blob = await canvasToBlob(canvas, type);
+      const base = numField ? fieldValue(numField, row) : fields[0] ? fieldValue(fields[0]) : "شهادة";
+      downloadBlob(blob, `${safeFileName(base)}.${type === "image/png" ? "png" : "jpg"}`);
+      if (total > 1) await new Promise((r) => setTimeout(r, 150));
+    }
+    toast.success(total > 1 ? `تم حفظ ${total} نسخة مرقّمة` : "تم حفظ الشهادة", { duration: 10000, action: { label: "اذهب للتجميع", onClick: () => { window.location.href = "/tools/collage"; } } });
   };
 
   return (
@@ -96,6 +104,12 @@ function SingleCertificate() {
               onMove={(id, x, y) => patch(id, { x, y })}
             />
             <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
+            {hasNumber && (
+              <div className="flex max-w-xs items-center gap-2">
+                <Label htmlFor="copies" className="shrink-0">عدد النسخ المرقّمة</Label>
+                <input id="copies" type="number" min={1} max={500} value={copies} onChange={(e) => setCopies(Math.min(500, Math.max(1, Number(e.target.value) || 1)))} className="h-9 w-24 rounded-md border border-input bg-background px-2 text-sm" />
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => save("image/png")}>
                 <Download className="size-4" /> حفظ PNG
@@ -136,6 +150,17 @@ function SingleCertificate() {
                   }}
                 >
                   <Plus className="size-4" /> إضافة حقل
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const f = newField({ key: "الرقم", text: "001", x: 0.85, y: 0.1, fontSize: 0.04, bold: false, autoNumber: { start: 1, pad: 3, prefix: "" } });
+                    setFields((prev) => [...prev, f]);
+                    setSelected(f.id);
+                  }}
+                >
+                  <Plus className="size-4" /> ترقيم تلقائي
                 </Button>
               </div>
             </div>
