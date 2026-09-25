@@ -12,6 +12,7 @@ import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
 import {
   canvasToBlob,
+  autoNumberCount,
   drawCertificate,
   fieldValue,
   loadImageFromFile,
@@ -44,7 +45,6 @@ function SingleCertificate() {
   const [fields, setFields] = useState<Field[]>([newField()]);
   const [selected, setSelected] = useState<string | null>(null);
   const [quality, setQuality] = useState<ExportScaleId>(DEFAULT_SCALE);
-  const [copies, setCopies] = useState(1);
   const hasNumber = fields.some((f) => f.autoNumber);
 
   const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
@@ -65,8 +65,8 @@ function SingleCertificate() {
   const save = async (type: "image/png" | "image/jpeg") => {
     if (!image) return;
     const canvas = document.createElement("canvas");
-    const total = hasNumber ? copies : 1;
     const numField = fields.find((f) => f.autoNumber);
+    const total = hasNumber ? autoNumberCount(numField) : 1;
     for (let i = 0; i < total; i++) {
       const row = { __index: String(i) };
       drawCertificate(canvas, image, fields, row, scaleOf(quality));
@@ -104,12 +104,7 @@ function SingleCertificate() {
               onMove={(id, x, y) => patch(id, { x, y })}
             />
             <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
-            {hasNumber && (
-              <div className="flex max-w-xs items-center gap-2">
-                <Label htmlFor="copies" className="shrink-0">عدد النسخ المرقّمة</Label>
-                <input id="copies" type="number" min={1} max={500} value={copies} onChange={(e) => setCopies(Math.min(500, Math.max(1, Number(e.target.value) || 1)))} className="h-9 w-24 rounded-md border border-input bg-background px-2 text-sm" />
-              </div>
-            )}
+            {hasNumber && <p className="text-sm font-medium text-primary">سيتم حفظ {autoNumberCount(fields.find((f) => f.autoNumber))} نسخة حسب المدى المحدد.</p>}
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => save("image/png")}>
                 <Download className="size-4" /> حفظ PNG
@@ -155,7 +150,7 @@ function SingleCertificate() {
                   size="sm"
                   variant="secondary"
                   onClick={() => {
-                    const f = newField({ key: "الرقم", text: "001", x: 0.85, y: 0.1, fontSize: 0.04, bold: false, autoNumber: { start: 1, pad: 3, prefix: "" } });
+                    const f = newField({ key: "الرقم", text: "001", x: 0.85, y: 0.1, fontSize: 0.04, bold: false, autoNumber: { start: 1, end: 10, pad: 3, prefix: "" } });
                     setFields((prev) => [...prev, f]);
                     setSelected(f.id);
                   }}
