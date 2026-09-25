@@ -67,7 +67,7 @@ function SingleCertificate() {
     const blob = await canvasToBlob(canvas, type);
     const first = fields[0] ? fieldValue(fields[0]) : "شهادة";
     downloadBlob(blob, `${safeFileName(first)}.${type === "image/png" ? "png" : "jpg"}`);
-    toast.success("تم حفظ الشهادة");
+    toast.success("تم حفظ الشهادة", { duration: 10000, action: { label: "اذهب للتجميع", onClick: () => { window.location.href = "/tools/collage"; } } });
   };
 
   return (
