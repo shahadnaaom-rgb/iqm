@@ -10,7 +10,6 @@ import {
   PenTool,
   Settings,
   ShieldCheck,
-  Wand2,
   Zap,
 } from "lucide-react";
 
@@ -60,12 +59,6 @@ const TOOLS = [
     icon: Award,
     title: "شهادة تقديرية",
     desc: "ضع اسم الطالب على قالب جاهز.",
-  },
-  {
-    to: "/tools/exam-builder",
-    icon: Wand2,
-    title: "تنضيد الأسئلة",
-    desc: "ورقة أسئلة A4 مع رموز المواد وتصدير PDF/PNG.",
   },
   {
     to: "/tools/collage",

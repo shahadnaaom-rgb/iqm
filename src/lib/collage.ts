@@ -8,6 +8,21 @@ export type CollageTemplate = {
   cells: Cell[];
 };
 
+export function gridTemplate(rows: number, columns: number): CollageTemplate {
+  const safeRows = Math.min(8, Math.max(1, Math.floor(rows) || 1));
+  const safeColumns = Math.min(8, Math.max(1, Math.floor(columns) || 1));
+  return {
+    id: "custom",
+    name: "تقسيم مخصص",
+    cells: Array.from({ length: safeRows * safeColumns }, (_, index) => ({
+      x: (index % safeColumns) / safeColumns,
+      y: Math.floor(index / safeColumns) / safeRows,
+      w: 1 / safeColumns,
+      h: 1 / safeRows,
+    })),
+  };
+}
+
 export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   { id: "single", name: "صورة واحدة", cells: [{ x: 0, y: 0, w: 1, h: 1 }] },
   {
@@ -25,6 +40,11 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
       { x: 0, y: 0, w: 1, h: 0.5 },
       { x: 0, y: 0.5, w: 1, h: 0.5 },
     ],
+  },
+  {
+    id: "rows-4",
+    name: "٤ أقسام أفقية",
+    cells: Array.from({ length: 4 }, (_, i) => ({ x: 0, y: i / 4, w: 1, h: 1 / 4 })),
   },
   {
     id: "grid-2x2",

@@ -10,7 +10,6 @@ import { cn } from "../../lib/utils";
 const NAV = [
   { to: "/", label: "الرئيسية" },
   { to: "/tools/image-compressor", label: "ضغط الصور" },
-  { to: "/tools/exam-builder", label: "تنضيد الأسئلة" },
   { to: "/tools/collage", label: "تجميع الصور" },
   { to: "/tools/certificates", label: "الشهادات" },
   { to: "/tools/excel-certificates", label: "شهادات جماعية" },
