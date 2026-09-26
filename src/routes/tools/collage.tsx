@@ -12,6 +12,7 @@ import {
   COLLAGE_TEMPLATES,
   QUALITIES,
   RATIOS,
+  gridTemplate,
   renderCollage,
   type Anchor,
   type CollageItem,
@@ -59,6 +60,8 @@ const FORMATS: { id: ExportFormat; name: string }[] = [
 function PhotoCollage() {
   const [items, setItems] = useState<CollageItem[]>([]);
   const [templateId, setTemplateId] = useState("grid-2x2");
+  const [customRows, setCustomRows] = useState(2);
+  const [customColumns, setCustomColumns] = useState(2);
   const [ratioId, setRatioId] = useState<string>("1-1");
   const [qualityId, setQualityId] = useState<string>("print");
   const [customWidth, setCustomWidth] = useState(3000);
@@ -72,7 +75,9 @@ function PhotoCollage() {
   const [jpegQuality, setJpegQuality] = useState(0.95);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const template = COLLAGE_TEMPLATES.find((t) => t.id === templateId) ?? COLLAGE_TEMPLATES[0]!;
+  const template = templateId === "custom"
+    ? gridTemplate(customRows, customColumns)
+    : (COLLAGE_TEMPLATES.find((t) => t.id === templateId) ?? COLLAGE_TEMPLATES[0]!);
   const ratio = RATIOS.find((r) => r.id === ratioId)?.value ?? 1;
   const exportWidth = useCustom
     ? Math.min(8000, Math.max(600, Math.round(customWidth)))
@@ -245,7 +250,30 @@ function PhotoCollage() {
                   {t.name}
                 </Button>
               ))}
+              <Button
+                size="sm"
+                variant={templateId === "custom" ? "default" : "outline"}
+                onClick={() => setTemplateId("custom")}
+              >
+                تقسيم مخصص
+              </Button>
             </div>
+            {templateId === "custom" && (
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <label className="grid gap-1 text-sm">
+                  عدد الصفوف
+                  <input type="number" min={1} max={8} value={customRows}
+                    onChange={(e) => setCustomRows(Math.min(8, Math.max(1, Number(e.target.value) || 1)))}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3" />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  عدد الأعمدة
+                  <input type="number" min={1} max={8} value={customColumns}
+                    onChange={(e) => setCustomColumns(Math.min(8, Math.max(1, Number(e.target.value) || 1)))}
+                    className="h-10 w-full rounded-lg border border-border bg-background px-3" />
+                </label>
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2">
