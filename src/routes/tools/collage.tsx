@@ -143,8 +143,8 @@ function PhotoCollage() {
       toast.error("أضف صورة واحدة على الأقل");
       return;
     }
-    if (exportWidth * exportHeight > 48_000_000) {
-      toast.error("الأبعاد كبيرة جداً؛ اختر مقاساً أو دقة أقل (حتى ٤٨ مليون بكسل)");
+    if (exportWidth * exportHeight > 64_000_000) {
+      toast.error("الأبعاد كبيرة جداً؛ اختر مقاساً أو دقة أقل (حتى ٦٤ مليون بكسل)");
       return;
     }
     setBusy(true);
