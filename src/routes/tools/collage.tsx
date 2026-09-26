@@ -65,6 +65,8 @@ function PhotoCollage() {
   const [ratioId, setRatioId] = useState<string>("1-1");
   const [qualityId, setQualityId] = useState<string>("print");
   const [customWidth, setCustomWidth] = useState(3000);
+  const [customHeight, setCustomHeight] = useState(3000);
+  const [lockRatio, setLockRatio] = useState(true);
   const [useCustom, setUseCustom] = useState(false);
   const [gap, setGap] = useState(0.012);
   const [padding, setPadding] = useState(0.02);
@@ -80,15 +82,19 @@ function PhotoCollage() {
     : (COLLAGE_TEMPLATES.find((t) => t.id === templateId) ?? COLLAGE_TEMPLATES[0]!);
   const ratio = RATIOS.find((r) => r.id === ratioId)?.value ?? 1;
   const exportWidth = useCustom
-    ? Math.min(8000, Math.max(600, Math.round(customWidth)))
+    ? Math.min(8000, Math.max(300, Math.round(customWidth) || 300))
     : (QUALITIES.find((q) => q.id === qualityId)?.width ?? 3000);
+  const exportHeight = useCustom && !lockRatio
+    ? Math.min(8000, Math.max(300, Math.round(customHeight) || 300))
+    : Math.round(exportWidth / ratio);
+  const exportRatio = exportWidth / exportHeight;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     renderCollage(canvas, {
       width: 1000,
-      ratio,
+      ratio: exportRatio,
       template,
       items,
       gap,
@@ -96,7 +102,7 @@ function PhotoCollage() {
       radius,
       background,
     });
-  }, [items, template, ratio, gap, padding, radius, background]);
+  }, [items, template, exportRatio, gap, padding, radius, background]);
 
   const onFiles = async (files: File[]) => {
     try {
@@ -137,12 +143,16 @@ function PhotoCollage() {
       toast.error("أضف صورة واحدة على الأقل");
       return;
     }
+    if (exportWidth * exportHeight > 64_000_000) {
+      toast.error("الأبعاد كبيرة جداً؛ اختر مقاساً أو دقة أقل (حتى ٦٤ مليون بكسل)");
+      return;
+    }
     setBusy(true);
     try {
       const canvas = document.createElement("canvas");
       renderCollage(canvas, {
         width: exportWidth,
-        ratio,
+        ratio: exportRatio,
         template,
         items,
         gap,
@@ -231,7 +241,7 @@ function PhotoCollage() {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            دقة التصدير الحالية: {exportWidth}×{Math.round(exportWidth / ratio)} بكسل — خانات القالب:{" "}
+            مقاس الصورة النهائية: {exportWidth}×{exportHeight} بكسل ({(exportWidth * exportHeight / 1_000_000).toFixed(1)} ميغابكسل) — خانات القالب:{" "}
             {template.cells.length} / الصور المضافة: {items.length}
           </p>
         </div>
@@ -277,8 +287,9 @@ function PhotoCollage() {
           </div>
 
           <div className="grid gap-2">
-            <Label>أبعاد الورقة</Label>
+            <Label htmlFor="collage-ratio">نسبة أبعاد الصورة</Label>
             <select
+              id="collage-ratio"
               value={ratioId}
               onChange={(e) => setRatioId(e.target.value)}
               className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
@@ -292,8 +303,9 @@ function PhotoCollage() {
           </div>
 
           <div className="grid gap-2">
-            <Label>دقة التصدير</Label>
+            <Label htmlFor="collage-resolution">دقة الصورة النهائية</Label>
             <select
+              id="collage-resolution"
               value={useCustom ? "custom" : qualityId}
               onChange={(e) => {
                 if (e.target.value === "custom") setUseCustom(true);
@@ -312,16 +324,30 @@ function PhotoCollage() {
               <option value="custom">دقة مخصصة…</option>
             </select>
             {useCustom && (
-              <input
-                type="number"
-                min={600}
-                max={8000}
-                step={100}
-                value={customWidth}
-                onChange={(e) => setCustomWidth(Number(e.target.value))}
-                className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                dir="ltr"
-              />
+              <div className="grid gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="grid min-w-0 gap-1 text-sm">
+                    العرض (بكسل)
+                    <input type="number" min={300} max={8000} step={1} value={customWidth}
+                      onChange={(e) => setCustomWidth(Number(e.target.value))}
+                      className="h-11 min-w-0 w-full rounded-lg border border-border bg-background px-3" dir="ltr" />
+                  </label>
+                  <label className="grid min-w-0 gap-1 text-sm">
+                    الارتفاع (بكسل)
+                    <input type="number" min={300} max={8000} step={1} value={lockRatio ? exportHeight : customHeight}
+                      disabled={lockRatio}
+                      onChange={(e) => setCustomHeight(Number(e.target.value))}
+                      className="h-11 min-w-0 w-full rounded-lg border border-border bg-background px-3 disabled:opacity-60" dir="ltr" />
+                  </label>
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={lockRatio} onChange={(e) => {
+                    if (!e.target.checked) setCustomHeight(exportHeight);
+                    setLockRatio(e.target.checked);
+                  }} />
+                  تثبيت نسبة الأبعاد
+                </label>
+              </div>
             )}
           </div>
 
