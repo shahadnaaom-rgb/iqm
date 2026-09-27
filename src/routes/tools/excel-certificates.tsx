@@ -27,6 +27,9 @@ import { downloadBlob, pickDirectory, supportsDirectoryPicker, writeToDirectory 
 import { readSheet } from "../../lib/sheet";
 
 export const Route = createFileRoute("/tools/excel-certificates")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mode: search.mode === "grades" ? "grades" as const : "appreciation" as const,
+  }),
   head: () => ({
     meta: [
       { title: "شهادات جماعية — اكتب الأسماء أو ارفع Excel — منصة الأستاذ" },
@@ -70,7 +73,8 @@ function parseManual(text: string, mode: Mode): Row[] {
 
 function BulkCertificates() {
   const { families } = useFontFamilies();
-  const [mode, setMode] = useState<Mode>("appreciation");
+  const { mode: initialMode } = Route.useSearch();
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [manual, setManual] = useState("");
   const [sheetRows, setSheetRows] = useState<Row[]>([]);
