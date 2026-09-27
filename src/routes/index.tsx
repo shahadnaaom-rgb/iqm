@@ -118,14 +118,14 @@ function Home() {
               </>
             );
             if ("certificate" in tool) return (
-              <DropdownMenu key={tool.title}>
+              <DropdownMenu key={tool.title} dir="rtl">
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="surface group flex h-auto min-h-24 w-full items-start justify-start gap-4 whitespace-normal p-5 text-right transition-all hover:-translate-y-0.5 hover:bg-card hover:shadow-lift" aria-label="إنشاء الشهادات، اختر نوع الشهادة">
                     {content}
                     <ChevronDown className="mr-auto mt-3 size-4 shrink-0 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56" dir="rtl">
+                <DropdownMenuContent align="start" className="w-56">
                   <DropdownMenuItem asChild><Link to="/tools/certificates"><GraduationCap /> شهادة فردية</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link to="/tools/excel-certificates" search={{ mode: "appreciation" }}><Award /> شهادة تقديرية</Link></DropdownMenuItem>
                   <DropdownMenuItem asChild><Link to="/tools/excel-certificates" search={{ mode: "grades" }}><FileSpreadsheet /> شهادة درجات</Link></DropdownMenuItem>

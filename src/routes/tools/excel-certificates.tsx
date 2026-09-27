@@ -27,8 +27,8 @@ import { downloadBlob, pickDirectory, supportsDirectoryPicker, writeToDirectory 
 import { readSheet } from "../../lib/sheet";
 
 export const Route = createFileRoute("/tools/excel-certificates")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "grades" ? "grades" as const : "appreciation" as const,
+  validateSearch: (search: Record<string, unknown>): { mode?: "appreciation" | "grades" } => ({
+    mode: search["mode"] === "grades" ? "grades" : "appreciation",
   }),
   head: () => ({
     meta: [
@@ -74,7 +74,7 @@ function parseManual(text: string, mode: Mode): Row[] {
 function BulkCertificates() {
   const { families } = useFontFamilies();
   const { mode: initialMode } = Route.useSearch();
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [mode, setMode] = useState<Mode>(initialMode ?? "appreciation");
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [manual, setManual] = useState("");
   const [sheetRows, setSheetRows] = useState<Row[]>([]);

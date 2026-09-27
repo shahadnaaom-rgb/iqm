@@ -31,6 +31,8 @@ export const Route = createFileRoute("/tools/fonts")({
       },
       { property: "og:title", content: "إدارة الخطوط — منصة الأستاذ" },
       { property: "og:description", content: "أضف خطوطك الخاصة وجرّبها قبل إنشاء الشهادات." },
+       { property: "og:type", content: "website" },
+       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: FontsPage,

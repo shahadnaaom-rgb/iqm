@@ -28,6 +28,8 @@ export const Route = createFileRoute("/tools/image-compressor")({
       },
       { property: "og:title", content: "ضغط الصور — منصة الأستاذ" },
       { property: "og:description", content: "ضغط وتحويل الصور بدون رفعها إلى الإنترنت." },
+       { property: "og:type", content: "website" },
+       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ImageCompressor,

@@ -30,6 +30,8 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "لوحة التحكم — منصة الأستاذ" },
       { property: "og:description", content: "إدارة الإعلانات والمقالات." },
+       { property: "og:type", content: "website" },
+       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AdminPage,
