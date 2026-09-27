@@ -27,6 +27,9 @@ import { downloadBlob, pickDirectory, supportsDirectoryPicker, writeToDirectory 
 import { readSheet } from "../../lib/sheet";
 
 export const Route = createFileRoute("/tools/excel-certificates")({
+  validateSearch: (search: Record<string, unknown>): { mode?: "appreciation" | "grades" } => ({
+    mode: search["mode"] === "grades" ? "grades" : "appreciation",
+  }),
   head: () => ({
     meta: [
       { title: "شهادات جماعية — اكتب الأسماء أو ارفع Excel — منصة الأستاذ" },
@@ -70,12 +73,16 @@ function parseManual(text: string, mode: Mode): Row[] {
 
 function BulkCertificates() {
   const { families } = useFontFamilies();
-  const [mode, setMode] = useState<Mode>("appreciation");
+  const { mode: initialMode } = Route.useSearch();
+  const [mode, setMode] = useState<Mode>(initialMode ?? "appreciation");
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [manual, setManual] = useState("");
   const [sheetRows, setSheetRows] = useState<Row[]>([]);
   const [sheetColumns, setSheetColumns] = useState<string[]>([]);
-  const [fields, setFields] = useState<Field[]>([newField({ key: NAME })]);
+  const [fields, setFields] = useState<Field[]>(() => [
+    newField({ key: NAME }),
+    ...(initialMode === "grades" ? [newField({ key: GRADE, text: "95", y: 0.66, fontSize: 0.05, bold: false })] : []),
+  ]);
   const [selected, setSelected] = useState<string | null>(null);
   const [preview, setPreview] = useState(0);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);

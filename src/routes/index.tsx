@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Award,
+  ChevronDown,
   FileSpreadsheet,
   FileText,
   GraduationCap,
@@ -15,6 +16,8 @@ import {
 
 import { AdSlot } from "../components/AdSlot";
 import { PrivacyNote } from "../components/PrivacyNote";
+import { Button } from "../components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +33,8 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "أدواتك التعليمية، مباشرة على جهازك: صور، شهادات، Excel، خطوط.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,
@@ -43,22 +48,10 @@ const TOOLS = [
     desc: "ضغط وتحويل الصور بدون رفعها.",
   },
   {
-    to: "/tools/certificates",
-    icon: GraduationCap,
-    title: "إنشاء الشهادات",
-    desc: "أنشئ شهادة لطالب واحد.",
-  },
-  {
-    to: "/tools/excel-certificates",
-    icon: FileSpreadsheet,
-    title: "شهادات جماعية",
-    desc: "اكتب الأسماء أو ارفع Excel: تقديرية أو درجات.",
-  },
-  {
-    to: "/tools/certificates",
-    icon: Award,
-    title: "شهادة تقديرية",
-    desc: "ضع اسم الطالب على قالب جاهز.",
+    to: "/tools/pdf",
+    icon: FileText,
+    title: "أدوات PDF",
+    desc: "تحرير الصفحات وتحويل الصور ↔ PDF.",
   },
   {
     to: "/tools/collage",
@@ -66,9 +59,14 @@ const TOOLS = [
     title: "تجميع الصور",
     desc: "اجمع عدة صور في قالب واحد وصدّرها بدقة عالية.",
   },
-  { to: "/tools/fonts", icon: PenTool, title: "الخطوط", desc: "أضف خطوطك الخاصة." },
-  { to: "/tools/pdf", icon: FileText, title: "أدوات PDF", desc: "تحرير الصفحات وتحويل الصور ↔ PDF." },
+  {
+    icon: GraduationCap,
+    title: "إنشاء الشهادات",
+    desc: "شهادة فردية، تقديرية أو درجات.",
+    certificate: true,
+  },
   { to: "/articles", icon: Newspaper, title: "المقالات", desc: "مقالات وإرشادات للمدرسين." },
+  { to: "/tools/fonts", icon: PenTool, title: "الخطوط", desc: "أضف خطوطك الخاصة." },
   { to: "/settings", icon: Settings, title: "الإعدادات", desc: "الوضع الليلي وتنظيف البيانات." },
 ] as const;
 
@@ -89,12 +87,9 @@ function Home() {
             أدواتك التعليمية، مباشرة على جهازك. أدوات مجانية تحافظ على خصوصية ملفاتك وبيانات طلابك.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <Link
-              to="/tools/excel-certificates"
-              className="inline-flex h-11 items-center rounded-xl bg-primary px-6 font-medium text-primary-foreground shadow-soft transition-transform hover:scale-[1.02]"
-            >
-              ابدأ بشهادات Excel
-            </Link>
+            <Button asChild size="lg" className="h-11 shadow-soft">
+              <Link to="/tools/pdf">ابدأ بأدوات PDF</Link>
+            </Button>
             <Link
               to="/tools/image-compressor"
               className="inline-flex h-11 items-center rounded-xl border border-border bg-card px-6 font-medium transition-colors hover:bg-secondary"
@@ -110,21 +105,39 @@ function Home() {
       <section className="mx-auto w-full max-w-6xl px-4 py-12">
         <h2 className="mb-6 text-xl font-bold sm:text-2xl">الأدوات</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {TOOLS.map((tool) => (
-            <Link
-              key={tool.title}
-              to={tool.to}
-              className="surface group flex items-start gap-4 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lift"
-            >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                <tool.icon className="size-5" />
-              </span>
-              <span className="grid gap-1">
-                <span className="font-display font-bold">{tool.title}</span>
-                <span className="text-sm text-muted-foreground">{tool.desc}</span>
-              </span>
-            </Link>
-          ))}
+          {TOOLS.map((tool) => {
+            const content = (
+              <>
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <tool.icon className="size-5" />
+                </span>
+                <span className="grid min-w-0 gap-1">
+                  <span className="font-display font-bold">{tool.title}</span>
+                  <span className="text-sm text-muted-foreground">{tool.desc}</span>
+                </span>
+              </>
+            );
+            if ("certificate" in tool) return (
+              <DropdownMenu key={tool.title} dir="rtl">
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="surface group flex h-auto min-h-24 w-full items-start justify-start gap-4 whitespace-normal p-5 text-right transition-all hover:-translate-y-0.5 hover:bg-card hover:shadow-lift" aria-label="إنشاء الشهادات، اختر نوع الشهادة">
+                    {content}
+                    <ChevronDown className="mr-auto mt-3 size-4 shrink-0 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem asChild><Link to="/tools/certificates"><GraduationCap /> شهادة فردية</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/tools/excel-certificates" search={{ mode: "appreciation" }}><Award /> شهادة تقديرية</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/tools/excel-certificates" search={{ mode: "grades" }}><FileSpreadsheet /> شهادة درجات</Link></DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            );
+            return (
+              <Link key={tool.title} to={tool.to} className="surface group flex min-h-24 items-start gap-4 p-5 transition-all hover:-translate-y-0.5 hover:shadow-lift">
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </section>
 

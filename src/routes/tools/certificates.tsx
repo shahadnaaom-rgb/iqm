@@ -34,6 +34,8 @@ export const Route = createFileRoute("/tools/certificates")({
       },
       { property: "og:title", content: "إنشاء الشهادات — منصة الأستاذ" },
       { property: "og:description", content: "محرر شهادات يعمل داخل متصفحك مع دعم كامل للعربية." },
+       { property: "og:type", content: "website" },
+       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SingleCertificate,
