@@ -95,7 +95,7 @@ export function TemplateCanvas({
       {onMove &&
         fields.map((field) => {
           const bounds = textBounds(field);
-          const anchor = field.align === "right" ? "translate(0, -50%)" : field.align === "left" ? "translate(-100%, -50%)" : "translate(-50%, -50%)";
+          const anchor = field.align === "right" ? "translate(-100%, -50%)" : field.align === "left" ? "translate(0, -50%)" : "translate(-50%, -50%)";
           return <Button
             key={field.id}
             type="button"
