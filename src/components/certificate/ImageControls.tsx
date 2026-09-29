@@ -26,9 +26,9 @@ export function ImageControls({ item, onChange, onRemove }: Props) {
       <div className="grid gap-2">
         <Label>محاذاة الصورة على الشهادة</Label>
         <div className="grid grid-cols-3 gap-1">
-          <Button size="sm" variant="outline" onClick={() => onChange({ x: item.width / 2 })}>يمين</Button>
+          <Button size="sm" variant="outline" onClick={() => onChange({ x: 1 - item.width / 2 })}>يمين</Button>
           <Button size="sm" variant="outline" onClick={() => onChange({ x: 0.5 })}>وسط</Button>
-          <Button size="sm" variant="outline" onClick={() => onChange({ x: 1 - item.width / 2 })}>يسار</Button>
+          <Button size="sm" variant="outline" onClick={() => onChange({ x: item.width / 2 })}>يسار</Button>
           <Button size="sm" variant="outline" onClick={() => onChange({ y: 0.08 })}>أعلى</Button>
           <Button size="sm" variant="outline" onClick={() => onChange({ y: 0.5 })}>منتصف</Button>
           <Button size="sm" variant="outline" onClick={() => onChange({ y: 0.92 })}>أسفل</Button>
