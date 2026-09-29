@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Award, Download, FileSpreadsheet, FolderDown, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Award, Download, FileSpreadsheet, FolderDown, ImagePlus, Plus } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "../../components/PrivacyNote";
 import { UploadZone } from "../../components/UploadZone";
 import { FieldControls } from "../../components/certificate/FieldControls";
+import { ImageControls } from "../../components/certificate/ImageControls";
 import { TemplateCanvas } from "../../components/certificate/TemplateCanvas";
 import { useFontFamilies } from "../../components/certificate/useFontFamilies";
 import { Button } from "../../components/ui/button";
@@ -19,6 +20,8 @@ import {
   loadImageFromFile,
   newField,
   safeFileName,
+  uid,
+  type CertificateImage,
   type Field,
 } from "../../lib/certificate";
 import { ExportQuality } from "../../components/ExportQuality";
@@ -83,6 +86,8 @@ function BulkCertificates() {
     newField({ key: NAME }),
     ...(initialMode === "grades" ? [newField({ key: GRADE, text: "95", y: 0.66, fontSize: 0.05, bold: false })] : []),
   ]);
+  const [images, setImages] = useState<CertificateImage[]>([]);
+  const imageInput = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [preview, setPreview] = useState(0);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
@@ -98,11 +103,24 @@ function BulkCertificates() {
       ? [NAME, GRADE]
       : [NAME];
 
-  const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
+  const selectedField = fields.find((f) => f.id === selected) ?? (selected === null ? fields[0] : undefined);
+  const selectedImage = images.find((item) => item.id === selected);
   const numberField = fields.find((f) => f.autoNumber);
   const outputCount = numberField ? autoNumberCount(numberField) : rows.length;
   const patch = (id: string, p: Partial<Field>) =>
     setFields((prev) => prev.map((f) => (f.id === id ? { ...f, ...p } : f)));
+  const move = (id: string, x: number, y: number) => {
+    patch(id, { x, y });
+    setImages((prev) => prev.map((item) => item.id === id ? { ...item, x, y } : item));
+  };
+  const addImages = async (files: FileList | null) => {
+    if (!files) return;
+    const additions = await Promise.all(Array.from(files).filter((file) => file.type.startsWith("image/")).map(async (file) => ({
+      id: uid(), image: await loadImageFromFile(file), name: file.name, x: 0.5, y: 0.5, width: 0.2, rotation: 0,
+    })));
+    setImages((prev) => [...prev, ...additions]);
+    if (additions[0]) setSelected(additions[0].id);
+  };
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -157,7 +175,7 @@ function BulkCertificates() {
 
     for (let i = 0; i < outputCount; i++) {
       const row = rows[i] ?? {};
-      drawCertificate(canvas, image, fields, { ...row, __index: String(i) }, scaleOf(quality));
+      drawCertificate(canvas, image, fields, { ...row, __index: String(i) }, scaleOf(quality), images);
       const blob = await canvasToBlob(canvas, "image/png");
       const file = `${String(i + 1).padStart(3, "0")}-${safeFileName(row[nameKey] || `طالب-${i + 1}`)}.png`;
       if (dir) await writeToDirectory(dir, file, blob);
@@ -248,10 +266,11 @@ function BulkCertificates() {
             <TemplateCanvas
               image={image}
               fields={fields}
+              images={images}
               row={rows[preview]}
-              selectedId={selectedField?.id}
+              selectedId={selectedImage?.id ?? selectedField?.id}
               onSelect={setSelected}
-              onMove={(id, x, y) => patch(id, { x, y })}
+              onMove={move}
             />
             {rows.length > 1 && (
               <div className="flex flex-wrap items-center gap-2">
@@ -317,6 +336,11 @@ function BulkCertificates() {
                     {f.key}
                   </Button>
                 ))}
+                {images.map((item) => (
+                  <Button key={item.id} size="sm" variant={selectedImage?.id === item.id ? "default" : "outline"} onClick={() => setSelected(item.id)}>
+                    <ImagePlus className="size-4" /> {item.name}
+                  </Button>
+                ))}
                 <Button
                   size="sm"
                   variant="secondary"
@@ -344,10 +368,16 @@ function BulkCertificates() {
                 >
                   <Plus className="size-4" /> ترقيم من–إلى
                 </Button>
+                <Button size="sm" variant="secondary" onClick={() => imageInput.current?.click()}>
+                  <ImagePlus className="size-4" /> إضافة صورة
+                </Button>
+                <input ref={imageInput} type="file" accept="image/*" multiple className="hidden" aria-label="اختيار صور للشهادة" onChange={(event) => { void addImages(event.target.files).catch(() => toast.error("تعذر قراءة الصورة")); event.target.value = ""; }} />
               </div>
             </div>
 
-            {selectedField && (
+            {selectedImage ? (
+              <ImageControls item={selectedImage} onChange={(patch) => setImages((prev) => prev.map((item) => item.id === selectedImage.id ? { ...item, ...patch } : item))} onRemove={() => { setImages((prev) => prev.filter((item) => item.id !== selectedImage.id)); setSelected(null); }} />
+            ) : selectedField && (
               <FieldControls
                 field={selectedField}
                 families={families}

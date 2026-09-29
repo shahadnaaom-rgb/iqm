@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download, GraduationCap, Plus } from "lucide-react";
-import { useState } from "react";
+import { Download, GraduationCap, ImagePlus, Plus } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "../../components/PrivacyNote";
 import { UploadZone } from "../../components/UploadZone";
 import { FieldControls } from "../../components/certificate/FieldControls";
+import { ImageControls } from "../../components/certificate/ImageControls";
 import { TemplateCanvas } from "../../components/certificate/TemplateCanvas";
 import { useFontFamilies } from "../../components/certificate/useFontFamilies";
 import { Button } from "../../components/ui/button";
@@ -18,6 +19,8 @@ import {
   loadImageFromFile,
   newField,
   safeFileName,
+  uid,
+  type CertificateImage,
   type Field,
 } from "../../lib/certificate";
 import { DEFAULT_SCALE, scaleOf, type ExportScaleId } from "../../lib/export";
@@ -45,14 +48,29 @@ function SingleCertificate() {
   const { families } = useFontFamilies();
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [fields, setFields] = useState<Field[]>([newField()]);
+  const [images, setImages] = useState<CertificateImage[]>([]);
+  const imageInput = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [quality, setQuality] = useState<ExportScaleId>(DEFAULT_SCALE);
   const hasNumber = fields.some((f) => f.autoNumber);
 
-  const selectedField = fields.find((f) => f.id === selected) ?? fields[0];
+  const selectedField = fields.find((f) => f.id === selected) ?? (selected === null ? fields[0] : undefined);
+  const selectedImage = images.find((item) => item.id === selected);
 
   const patch = (id: string, p: Partial<Field>) =>
     setFields((prev) => prev.map((f) => (f.id === id ? { ...f, ...p } : f)));
+  const move = (id: string, x: number, y: number) => {
+    patch(id, { x, y });
+    setImages((prev) => prev.map((item) => item.id === id ? { ...item, x, y } : item));
+  };
+  const addImages = async (files: FileList | null) => {
+    if (!files) return;
+    const additions = await Promise.all(Array.from(files).filter((file) => file.type.startsWith("image/")).map(async (file) => ({
+      id: uid(), image: await loadImageFromFile(file), name: file.name, x: 0.5, y: 0.5, width: 0.2, rotation: 0,
+    })));
+    setImages((prev) => [...prev, ...additions]);
+    if (additions[0]) setSelected(additions[0].id);
+  };
 
   const onTemplate = async (files: File[]) => {
     try {
@@ -71,7 +89,7 @@ function SingleCertificate() {
     const total = hasNumber ? autoNumberCount(numField) : 1;
     for (let i = 0; i < total; i++) {
       const row = { __index: String(i) };
-      drawCertificate(canvas, image, fields, row, scaleOf(quality));
+      drawCertificate(canvas, image, fields, row, scaleOf(quality), images);
       const blob = await canvasToBlob(canvas, type);
       const base = numField ? fieldValue(numField, row) : fields[0] ? fieldValue(fields[0]) : "شهادة";
       downloadBlob(blob, `${safeFileName(base)}.${type === "image/png" ? "png" : "jpg"}`);
@@ -101,9 +119,10 @@ function SingleCertificate() {
             <TemplateCanvas
               image={image}
               fields={fields}
-              selectedId={selectedField?.id}
+              images={images}
+              selectedId={selectedImage?.id ?? selectedField?.id}
               onSelect={setSelected}
-              onMove={(id, x, y) => patch(id, { x, y })}
+              onMove={move}
             />
             <ExportQuality value={quality} onChange={setQuality} className="max-w-xs" />
             {hasNumber && <p className="text-sm font-medium text-primary">سيتم حفظ {autoNumberCount(fields.find((f) => f.autoNumber))} نسخة حسب المدى المحدد.</p>}
@@ -137,6 +156,11 @@ function SingleCertificate() {
                     {f.key}
                   </Button>
                 ))}
+                {images.map((item) => (
+                  <Button key={item.id} size="sm" variant={selectedImage?.id === item.id ? "default" : "outline"} onClick={() => setSelected(item.id)}>
+                    <ImagePlus className="size-4" /> {item.name}
+                  </Button>
+                ))}
                 <Button
                   size="sm"
                   variant="secondary"
@@ -159,10 +183,16 @@ function SingleCertificate() {
                 >
                   <Plus className="size-4" /> ترقيم تلقائي
                 </Button>
+                <Button size="sm" variant="secondary" onClick={() => imageInput.current?.click()}>
+                  <ImagePlus className="size-4" /> إضافة صورة
+                </Button>
+                <input ref={imageInput} type="file" accept="image/*" multiple className="hidden" aria-label="اختيار صور للشهادة" onChange={(event) => { void addImages(event.target.files).catch(() => toast.error("تعذر قراءة الصورة")); event.target.value = ""; }} />
               </div>
             </div>
 
-            {selectedField && (
+            {selectedImage ? (
+              <ImageControls item={selectedImage} onChange={(patch) => setImages((prev) => prev.map((item) => item.id === selectedImage.id ? { ...item, ...patch } : item))} onRemove={() => { setImages((prev) => prev.filter((item) => item.id !== selectedImage.id)); setSelected(null); }} />
+            ) : selectedField && (
               <FieldControls
                 field={selectedField}
                 families={families}
