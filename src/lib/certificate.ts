@@ -1,5 +1,19 @@
 export type Align = "right" | "center" | "left";
 
+export type CertificateImage = {
+  id: string;
+  image: HTMLImageElement;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  rotation: number;
+};
+
+export function imageHeight(item: CertificateImage, canvasRatio: number) {
+  return item.width * (item.image.naturalHeight / item.image.naturalWidth) * canvasRatio;
+}
+
 export type Field = {
   id: string;
   /** اسم الحقل، ويُستخدم كمفتاح ربط مع أعمدة Excel */
@@ -67,6 +81,7 @@ export function drawCertificate(
   fields: Field[],
   row?: Record<string, string>,
   scale = 1,
+  images: CertificateImage[] = [],
 ) {
   const baseW = "naturalWidth" in image ? image.naturalWidth : image.width;
   const baseH = "naturalHeight" in image ? image.naturalHeight : image.height;
@@ -104,6 +119,16 @@ export function drawCertificate(
       size -= Math.max(1, size * 0.04);
     }
     ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  for (const item of images) {
+    const imageWidth = item.width * w;
+    const imageHeight = imageWidth * item.image.naturalHeight / item.image.naturalWidth;
+    ctx.save();
+    ctx.translate(item.x * w, item.y * h);
+    ctx.rotate((item.rotation * Math.PI) / 180);
+    ctx.drawImage(item.image, -imageWidth / 2, -imageHeight / 2, imageWidth, imageHeight);
     ctx.restore();
   }
 }
