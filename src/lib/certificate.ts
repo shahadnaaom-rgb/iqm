@@ -74,6 +74,33 @@ export function autoNumberCount(field?: Field) {
   return Math.max(1, field.autoNumber.end - field.autoNumber.start + 1);
 }
 
+/** قياسات النص من نفس إعدادات الرسم، لتطابق حدود التحريك مع النص المرسوم. */
+export function certificateTextBounds(
+  ctx: CanvasRenderingContext2D,
+  field: Field,
+  text: string,
+  width: number,
+  height: number,
+) {
+  ctx.textBaseline = "middle";
+  ctx.direction = "rtl";
+  ctx.textAlign = field.align;
+  let size = field.fontSize * height;
+  for (let i = 0; i < 40; i++) {
+    ctx.font = `${field.bold ? "700" : "400"} ${size}px "${field.fontFamily}", "Cairo", sans-serif`;
+    ctx.letterSpacing = `${field.letterSpacing * size}px`;
+    if (ctx.measureText(text).width <= field.maxWidth * width || size <= 8) break;
+    size -= Math.max(1, size * 0.04);
+  }
+  const metrics = ctx.measureText(text);
+  return {
+    left: -metrics.actualBoundingBoxLeft,
+    top: -metrics.actualBoundingBoxAscent,
+    width: metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight,
+    height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+  };
+}
+
 /** يرسم القالب والحقول على Canvas بأبعاد الصورة الأصلية */
 export function drawCertificate(
   canvas: HTMLCanvasElement,
@@ -99,25 +126,11 @@ export function drawCertificate(
   for (const field of fields) {
     const text = fieldValue(field, row);
     if (!text) continue;
-    let size = field.fontSize * h;
-    const maxWidth = field.maxWidth * w;
-
     ctx.save();
     ctx.translate(field.x * w, field.y * h);
     ctx.rotate((field.rotation * Math.PI) / 180);
     ctx.fillStyle = field.color;
-    ctx.textAlign = field.align === "right" ? "right" : field.align === "left" ? "left" : "center";
-    if ("letterSpacing" in ctx) {
-      (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing =
-        `${field.letterSpacing * size}px`;
-    }
-
-    // تصغير تلقائي حتى لا تخرج الأسماء الطويلة من مكانها
-    for (let i = 0; i < 40; i++) {
-      ctx.font = `${field.bold ? "700" : "400"} ${size}px "${field.fontFamily}", "Cairo", sans-serif`;
-      if (ctx.measureText(text).width <= maxWidth || size <= 8) break;
-      size -= Math.max(1, size * 0.04);
-    }
+    certificateTextBounds(ctx, field, text, w, h);
     ctx.fillText(text, 0, 0);
     ctx.restore();
   }
