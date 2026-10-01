@@ -68,9 +68,9 @@ function PhotoCollage() {
   const [customHeight, setCustomHeight] = useState(3000);
   const [lockRatio, setLockRatio] = useState(true);
   const [useCustom, setUseCustom] = useState(false);
-  const [gap, setGap] = useState(0.012);
-  const [padding, setPadding] = useState(0.02);
-  const [radius, setRadius] = useState(0.01);
+  const [gap, setGap] = useState(0);
+  const [padding, setPadding] = useState(0);
+  const [radius, setRadius] = useState(0);
   const [background, setBackground] = useState("#ffffff");
   const [busy, setBusy] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
@@ -113,7 +113,7 @@ function PhotoCollage() {
             id: uid(),
             name: file.name,
             image,
-            fit: "cover" as Fit,
+            fit: "contain" as Fit,
             anchor: "center" as Anchor,
             zoom: 1,
           };

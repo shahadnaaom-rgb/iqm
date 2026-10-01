@@ -48,7 +48,7 @@ export function FieldControls({
       <div className="grid gap-2 rounded-lg border border-border p-3">
         <label className="flex items-center justify-between gap-2 text-sm font-medium">
           ترقيم تلقائي
-          <input type="checkbox" className="size-4 accent-primary" checked={!!field.autoNumber} onChange={(e) => onChange({ autoNumber: e.target.checked ? { start: 1, end: 10, pad: 3, prefix: "" } : undefined })} />
+          <input type="checkbox" className="size-4 accent-primary" checked={!!field.autoNumber} onChange={(e) => onChange({ autoNumber: e.target.checked ? { start: 1, end: 10, pad: 1, prefix: "" } : undefined })} />
         </label>
         {field.autoNumber && (
           <div className="grid grid-cols-2 gap-2">
