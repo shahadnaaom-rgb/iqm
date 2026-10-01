@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { drawCertificate, fieldValue, imageHeight, type CertificateImage, type Field } from "../../lib/certificate";
+import { certificateTextBounds, drawCertificate, fieldValue, imageHeight, type CertificateImage, type Field } from "../../lib/certificate";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 
@@ -67,17 +67,19 @@ export function TemplateCanvas({
   const textBounds = (field: Field) => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx || !rendered) return { width: field.maxWidth * 100, height: field.fontSize * 150 };
+    if (!canvas || !ctx || !rendered) return { left: 0, top: 0, width: 0, height: 0 };
     const text = fieldValue(field, row);
-    let size = field.fontSize * canvas.height;
-    for (let i = 0; i < 40; i++) {
-      ctx.font = `${field.bold ? "700" : "400"} ${size}px "${field.fontFamily}", "Cairo", sans-serif`;
-      if (ctx.measureText(text).width <= field.maxWidth * canvas.width || size <= 8) break;
-      size -= Math.max(1, size * 0.04);
-    }
+    ctx.save();
+    const bounds = certificateTextBounds(ctx, field, text, canvas.width, canvas.height);
+    ctx.restore();
+    // Add a small touch target without changing the anchor used by the canvas.
+    const padX = 8 / canvas.getBoundingClientRect().width * canvas.width;
+    const padY = 8 / canvas.getBoundingClientRect().height * canvas.height;
     return {
-      width: Math.min(field.maxWidth * 100, Math.max(0.02, ctx.measureText(text).width / canvas.width) * 100),
-      height: Math.max(0.03, size * 1.5 / canvas.height) * 100,
+      left: (bounds.left - padX) / canvas.width * 100,
+      top: (bounds.top - padY) / canvas.height * 100,
+      width: (Math.max(bounds.width, 1) + padX * 2) / canvas.width * 100,
+      height: (Math.max(bounds.height, 1) + padY * 2) / canvas.height * 100,
     };
   };
 
@@ -86,7 +88,7 @@ export function TemplateCanvas({
   return (
     <div
       ref={boxRef}
-      className={cn("checker relative w-full overflow-hidden rounded-xl border border-border", className)}
+      className={cn("checker relative w-full self-start overflow-hidden rounded-xl border border-border", className)}
       onPointerMove={handlePointer}
       onPointerUp={() => (dragging.current = null)}
       onPointerCancel={() => (dragging.current = null)}
@@ -95,21 +97,21 @@ export function TemplateCanvas({
       {onMove &&
         fields.map((field) => {
           const bounds = textBounds(field);
-          const anchor = field.align === "right" ? "translate(-100%, -50%)" : field.align === "left" ? "translate(0, -50%)" : "translate(-50%, -50%)";
           return <Button
             key={field.id}
             type="button"
             variant="ghost"
             onPointerDown={(e) => startDrag(e, field.id, field.x, field.y)}
             style={{
-              left: `${field.x * 100}%`,
-              top: `${field.y * 100}%`,
+              left: `${field.x * 100 + bounds.left}%`,
+              top: `${field.y * 100 + bounds.top}%`,
               width: `${bounds.width}%`,
               height: `${bounds.height}%`,
-              transform: `${anchor} rotate(${field.rotation}deg)`,
+              transformOrigin: `${-bounds.left / bounds.width * 100}% ${-bounds.top / bounds.height * 100}%`,
+              transform: `rotate(${field.rotation}deg)`,
             }}
             className={cn(
-              "absolute min-h-7 min-w-7 touch-none cursor-move rounded-sm border-2 border-dashed border-transparent p-0 transition-colors",
+              "absolute touch-none cursor-move rounded-sm border-2 border-dashed border-transparent p-0 transition-colors",
               selectedId === field.id
                 ? "border-primary bg-primary/5"
                 : "hover:border-primary/50 hover:bg-primary/5",
