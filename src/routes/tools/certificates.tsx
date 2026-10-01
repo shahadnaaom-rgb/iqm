@@ -176,7 +176,7 @@ function SingleCertificate() {
                   size="sm"
                   variant="secondary"
                   onClick={() => {
-                    const f = newField({ key: "الرقم", text: "001", x: 0.85, y: 0.1, fontSize: 0.04, bold: false, autoNumber: { start: 1, end: 10, pad: 3, prefix: "" } });
+                    const f = newField({ key: "الرقم", text: "1", x: 0.85, y: 0.1, fontSize: 0.04, bold: false, autoNumber: { start: 1, end: 10, pad: 1, prefix: "" } });
                     setFields((prev) => [...prev, f]);
                     setSelected(f.id);
                   }}
