@@ -10,6 +10,7 @@ export function useFontFamilies() {
     listFonts().then(async (fonts) => {
       if (!alive) return;
       await activateAll(fonts);
+      await Promise.all(["Thmanyah Sans", "Thmanyah Serif"].flatMap((f) => ["400", "700"].map((w) => document.fonts.load(`${w} 16px "${f}"`).catch(() => null))));
       setCustom(fonts);
     });
     return () => {

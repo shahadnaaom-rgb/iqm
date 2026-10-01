@@ -18,6 +18,8 @@ export const BUILTIN_FONTS = [
   { family: "Aref Ruqaa", label: "Aref Ruqaa (رقعة)" },
   { family: "Noto Kufi Arabic", label: "Noto Kufi Arabic" },
   { family: "Times New Roman", label: "Times New Roman (تايمز)" },
+  { family: "Thmanyah Sans", label: "ثمانية (Thmanyah Sans)" },
+  { family: "Thmanyah Serif", label: "ثمانية سيرف (Thmanyah Serif)" },
 ];
 
 function sanitizeFamily(name: string) {
