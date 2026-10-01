@@ -311,3 +311,8 @@
 .exam-footer-lined {
   border-top: 2px solid #111111;
 }
+
+@font-face { font-family: "Thmanyah Sans"; src: url("/fonts/thmanyah/thmanyah-sans-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Thmanyah Sans"; src: url("/fonts/thmanyah/thmanyah-sans-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Thmanyah Serif"; src: url("/fonts/thmanyah/thmanyah-serif-display-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Thmanyah Serif"; src: url("/fonts/thmanyah/thmanyah-serif-display-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
