@@ -88,7 +88,7 @@ export function TemplateCanvas({
   return (
     <div
       ref={boxRef}
-      className={cn("checker relative w-full overflow-hidden rounded-xl border border-border", className)}
+      className={cn("checker relative w-full self-start overflow-hidden rounded-xl border border-border", className)}
       onPointerMove={handlePointer}
       onPointerUp={() => (dragging.current = null)}
       onPointerCancel={() => (dragging.current = null)}
