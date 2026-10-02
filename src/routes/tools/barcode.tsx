@@ -114,6 +114,56 @@ function BarcodeTool() {
     }
   };
 
+  const makePng = async (text: string): Promise<Blob> => {
+    const canvas = document.createElement("canvas");
+    generator!.toCanvas(canvas, { ...options, text });
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/png"));
+    if (!blob) throw new Error("png");
+    return blob;
+  };
+
+  const safeName = (s: string) => s.replace(/[\\/:*?"<>|\s]+/g, "-").slice(0, 60) || "code";
+
+  const generateBatch = async (asZip: boolean) => {
+    if (!generator || batchLines.length === 0) return;
+    setBatchBusy(true);
+    try {
+      const failed: string[] = [];
+      const files: { name: string; blob: Blob }[] = [];
+      for (let i = 0; i < batchLines.length; i++) {
+        const text = batchLines[i]!;
+        try {
+          const blob = await makePng(text);
+          files.push({ name: `${String(i + 1).padStart(3, "0")}-${safeName(text)}.png`, blob });
+        } catch {
+          failed.push(text);
+        }
+      }
+      if (files.length === 0) {
+        toast.error("تعذر إنشاء أي رمز. تحقق من القيم المدخلة.");
+        return;
+      }
+      if (asZip) {
+        const { default: JSZip } = await import("jszip");
+        const zip = new JSZip();
+        for (const f of files) zip.file(f.name, f.blob);
+        const blob = await zip.generateAsync({ type: "blob" });
+        downloadBlob(blob, `barcodes-${format}.zip`);
+      } else {
+        for (const f of files) {
+          downloadBlob(f.blob, f.name);
+          await new Promise((r) => setTimeout(r, 150));
+        }
+      }
+      toast.success(`تم إنشاء ${files.length} رمزاً`);
+      if (failed.length) toast.warning(`تعذر إنشاء ${failed.length} رمز — تحقق من صحة القيم`);
+    } catch {
+      toast.error("تعذر الإنشاء الجماعي");
+    } finally {
+      setBatchBusy(false);
+    }
+  };
+
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10">
       <PageHeader icon={<ScanLine className="size-6" />} title="صانع الباركود" description="أنشئ باركود أو رمز QR وخصّص مظهره قبل الحفظ." />
