@@ -24,7 +24,7 @@ export const Route = createFileRoute("/tools/barcode")({
 });
 
 type Format = "qrcode" | "code128" | "ean13" | "datamatrix";
-type Generator = typeof import("bwip-js");
+type Generator = typeof import("bwip-js/browser");
 
 const formats: { id: Format; name: string; example: string }[] = [
   { id: "qrcode", name: "QR", example: "https://example.com" },
@@ -50,7 +50,7 @@ function BarcodeTool() {
 
   useEffect(() => {
     let active = true;
-    import("bwip-js").then((module) => { if (active) setGenerator(module); });
+    import("bwip-js/browser").then((module) => { if (active) setGenerator(module); });
     return () => { active = false; };
   }, []);
 
@@ -80,8 +80,8 @@ function BarcodeTool() {
     try {
       generator.toCanvas(canvas, options);
       setError("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch {
+      setError(format === "ean13" ? "يحتاج EAN-13 إلى 12 أو 13 رقماً صالحاً." : "تعذر إنشاء الرمز. تحقق من النص المدخل.");
       canvas.width = 0;
       canvas.height = 0;
     }
