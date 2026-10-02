@@ -45,6 +45,9 @@ function BarcodeTool() {
   const [showText, setShowText] = useState(true);
   const [error, setError] = useState("");
   const [generator, setGenerator] = useState<Generator | null>(null);
+  const [batchText, setBatchText] = useState("");
+  const [batchBusy, setBatchBusy] = useState(false);
+  const batchLines = batchText.split("\n").map((l) => l.trim()).filter(Boolean);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linear = format === "code128" || format === "ean13";
 
