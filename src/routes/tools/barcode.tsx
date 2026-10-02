@@ -65,7 +65,7 @@ function BarcodeTool() {
     textcolor: ink.slice(1),
     ...(transparent ? {} : { backgroundcolor: paper.slice(1) }),
     includetext: linear && showText,
-    textxalign: "center",
+    textxalign: "center" as const,
   };
 
   useEffect(() => {
