@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, ScanLine } from "lucide-react";
+import { Download, Layers, ScanLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -45,6 +45,9 @@ function BarcodeTool() {
   const [showText, setShowText] = useState(true);
   const [error, setError] = useState("");
   const [generator, setGenerator] = useState<Generator | null>(null);
+  const [batchText, setBatchText] = useState("");
+  const [batchBusy, setBatchBusy] = useState(false);
+  const batchLines = batchText.split("\n").map((l) => l.trim()).filter(Boolean);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linear = format === "code128" || format === "ean13";
 
@@ -111,6 +114,56 @@ function BarcodeTool() {
     }
   };
 
+  const makePng = async (text: string): Promise<Blob> => {
+    const canvas = document.createElement("canvas");
+    generator!.toCanvas(canvas, { ...options, text });
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/png"));
+    if (!blob) throw new Error("png");
+    return blob;
+  };
+
+  const safeName = (s: string) => s.replace(/[\\/:*?"<>|\s]+/g, "-").slice(0, 60) || "code";
+
+  const generateBatch = async (asZip: boolean) => {
+    if (!generator || batchLines.length === 0) return;
+    setBatchBusy(true);
+    try {
+      const failed: string[] = [];
+      const files: { name: string; blob: Blob }[] = [];
+      for (let i = 0; i < batchLines.length; i++) {
+        const text = batchLines[i]!;
+        try {
+          const blob = await makePng(text);
+          files.push({ name: `${String(i + 1).padStart(3, "0")}-${safeName(text)}.png`, blob });
+        } catch {
+          failed.push(text);
+        }
+      }
+      if (files.length === 0) {
+        toast.error("تعذر إنشاء أي رمز. تحقق من القيم المدخلة.");
+        return;
+      }
+      if (asZip) {
+        const { default: JSZip } = await import("jszip");
+        const zip = new JSZip();
+        for (const f of files) zip.file(f.name, f.blob);
+        const blob = await zip.generateAsync({ type: "blob" });
+        downloadBlob(blob, `barcodes-${format}.zip`);
+      } else {
+        for (const f of files) {
+          downloadBlob(f.blob, f.name);
+          await new Promise((r) => setTimeout(r, 150));
+        }
+      }
+      toast.success(`تم إنشاء ${files.length} رمزاً`);
+      if (failed.length) toast.warning(`تعذر إنشاء ${failed.length} رمز — تحقق من صحة القيم`);
+    } catch {
+      toast.error("تعذر الإنشاء الجماعي");
+    } finally {
+      setBatchBusy(false);
+    }
+  };
+
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10">
       <PageHeader icon={<ScanLine className="size-6" />} title="صانع الباركود" description="أنشئ باركود أو رمز QR وخصّص مظهره قبل الحفظ." />
@@ -171,6 +224,33 @@ function BarcodeTool() {
             <Button type="button" variant="outline" disabled={!!error || !generator} onClick={() => download("svg")}><Download /> حفظ SVG</Button>
           </div>
         </div>
+      </div>
+
+      <div className="surface grid gap-4 p-5 sm:p-6">
+        <div className="grid gap-1">
+          <h2 className="flex items-center gap-2 text-lg font-bold"><Layers className="size-5" /> إنشاء جماعي</h2>
+          <p className="text-sm text-muted-foreground">
+            اكتب قيمة في كل سطر، وسيُنشأ رمز لكل سطر بنفس النوع والألوان والدقة المختارة أعلاه.
+          </p>
+        </div>
+        <textarea
+          dir="auto"
+          rows={6}
+          value={batchText}
+          onChange={(e) => setBatchText(e.target.value)}
+          placeholder={format === "ean13" ? "590123412345\n590123412346\n590123412347" : "CERT-2026-001\nCERT-2026-002\nCERT-2026-003"}
+          className="w-full resize-y rounded-md border border-input bg-background p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="قائمة القيم للإنشاء الجماعي"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" disabled={!generator || batchBusy || batchLines.length === 0} onClick={() => generateBatch(true)}>
+            <Download /> {batchBusy ? "جارٍ الإنشاء…" : `تنزيل الكل بملف مضغوط (${batchLines.length})`}
+          </Button>
+          <Button type="button" variant="outline" disabled={!generator || batchBusy || batchLines.length === 0} onClick={() => generateBatch(false)}>
+            <Download /> تنزيل صورة بعد صورة
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">تُحفظ الرموز بصيغة PNG وبنفس إعدادات الخلفية (شفافة أو ملوّنة) المختارة أعلاه.</p>
       </div>
     </div>
   );
