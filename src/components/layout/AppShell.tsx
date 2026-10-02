@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { GraduationCap, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
+import { GraduationCap, Menu, Moon, ScanLine, ShieldCheck, Sun, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { AdSlot } from "../AdSlot";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/", label: "الرئيسية" },
   { to: "/tools/image-compressor", label: "ضغط الصور" },
   { to: "/tools/collage", label: "تجميع الصور" },
+  { to: "/tools/barcode", label: "صانع الباركود" },
   { to: "/tools/certificates", label: "الشهادات" },
   { to: "/tools/excel-certificates", label: "شهادات جماعية" },
   { to: "/tools/pdf", label: "أدوات PDF" },

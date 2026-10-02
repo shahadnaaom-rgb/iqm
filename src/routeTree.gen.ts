@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ArticlesIndexRouteImport } from './routes/articles/index'
 import { Route as ArticlesSlugRouteImport } from './routes/articles/$slug'
+import { Route as ToolsBarcodeRouteImport } from './routes/tools/barcode'
 import { Route as ToolsCertificatesRouteImport } from './routes/tools/certificates'
 import { Route as ToolsCollageRouteImport } from './routes/tools/collage'
 import { Route as ToolsExamBuilderRouteImport } from './routes/tools/exam-builder'
@@ -47,6 +48,11 @@ const ArticlesIndexRoute = ArticlesIndexRouteImport.update({
 const ArticlesSlugRoute = ArticlesSlugRouteImport.update({
   id: '/articles/$slug',
   path: '/articles/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsBarcodeRoute = ToolsBarcodeRouteImport.update({
+  id: '/tools/barcode',
+  path: '/tools/barcode',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsCertificatesRoute = ToolsCertificatesRouteImport.update({
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
+  '/tools/barcode': typeof ToolsBarcodeRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
   '/tools/collage': typeof ToolsCollageRoute
   '/tools/exam-builder': typeof ToolsExamBuilderRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
+  '/tools/barcode': typeof ToolsBarcodeRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
   '/tools/collage': typeof ToolsCollageRoute
   '/tools/exam-builder': typeof ToolsExamBuilderRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/settings': typeof SettingsRoute
   '/articles/$slug': typeof ArticlesSlugRoute
+  '/tools/barcode': typeof ToolsBarcodeRoute
   '/tools/certificates': typeof ToolsCertificatesRoute
   '/tools/collage': typeof ToolsCollageRoute
   '/tools/exam-builder': typeof ToolsExamBuilderRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/settings'
     | '/articles/$slug'
+    | '/tools/barcode'
     | '/tools/certificates'
     | '/tools/collage'
     | '/tools/exam-builder'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/settings'
     | '/articles/$slug'
+    | '/tools/barcode'
     | '/tools/certificates'
     | '/tools/collage'
     | '/tools/exam-builder'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/settings'
     | '/articles/$slug'
+    | '/tools/barcode'
     | '/tools/certificates'
     | '/tools/collage'
     | '/tools/exam-builder'
@@ -201,6 +213,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   SettingsRoute: typeof SettingsRoute
   ArticlesSlugRoute: typeof ArticlesSlugRoute
+  ToolsBarcodeRoute: typeof ToolsBarcodeRoute
   ToolsCertificatesRoute: typeof ToolsCertificatesRoute
   ToolsCollageRoute: typeof ToolsCollageRoute
   ToolsExamBuilderRoute: typeof ToolsExamBuilderRoute
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/articles/$slug'
       fullPath: '/articles/$slug'
       preLoaderRoute: typeof ArticlesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/barcode': {
+      id: '/tools/barcode'
+      path: '/tools/barcode'
+      fullPath: '/tools/barcode'
+      preLoaderRoute: typeof ToolsBarcodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/certificates': {
@@ -321,6 +341,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   SettingsRoute: SettingsRoute,
   ArticlesSlugRoute: ArticlesSlugRoute,
+  ToolsBarcodeRoute: ToolsBarcodeRoute,
   ToolsCertificatesRoute: ToolsCertificatesRoute,
   ToolsCollageRoute: ToolsCollageRoute,
   ToolsExamBuilderRoute: ToolsExamBuilderRoute,

@@ -9,6 +9,7 @@ import {
   Images,
   Newspaper,
   PenTool,
+  ScanLine,
   Settings,
   ShieldCheck,
   Zap,
@@ -59,6 +60,7 @@ const TOOLS = [
     title: "تجميع الصور",
     desc: "اجمع عدة صور في قالب واحد وصدّرها بدقة عالية.",
   },
+  { to: "/tools/barcode", icon: ScanLine, title: "صانع الباركود", desc: "رموز QR وباركود بخلفية شفافة أو ملونة." },
   {
     icon: GraduationCap,
     title: "إنشاء الشهادات",
