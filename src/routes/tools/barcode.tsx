@@ -225,6 +225,33 @@ function BarcodeTool() {
           </div>
         </div>
       </div>
+
+      <div className="surface grid gap-4 p-5 sm:p-6">
+        <div className="grid gap-1">
+          <h2 className="flex items-center gap-2 text-lg font-bold"><Layers className="size-5" /> إنشاء جماعي</h2>
+          <p className="text-sm text-muted-foreground">
+            اكتب قيمة في كل سطر، وسيُنشأ رمز لكل سطر بنفس النوع والألوان والدقة المختارة أعلاه.
+          </p>
+        </div>
+        <textarea
+          dir="auto"
+          rows={6}
+          value={batchText}
+          onChange={(e) => setBatchText(e.target.value)}
+          placeholder={format === "ean13" ? "590123412345\n590123412346\n590123412347" : "CERT-2026-001\nCERT-2026-002\nCERT-2026-003"}
+          className="w-full resize-y rounded-md border border-input bg-background p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="قائمة القيم للإنشاء الجماعي"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" disabled={!generator || batchBusy || batchLines.length === 0} onClick={() => generateBatch(true)}>
+            <Download /> {batchBusy ? "جارٍ الإنشاء…" : `تنزيل الكل بملف مضغوط (${batchLines.length})`}
+          </Button>
+          <Button type="button" variant="outline" disabled={!generator || batchBusy || batchLines.length === 0} onClick={() => generateBatch(false)}>
+            <Download /> تنزيل صورة بعد صورة
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">تُحفظ الرموز بصيغة PNG وبنفس إعدادات الخلفية (شفافة أو ملوّنة) المختارة أعلاه.</p>
+      </div>
     </div>
   );
 }
